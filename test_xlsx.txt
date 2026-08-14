@@ -419,3 +419,153 @@ else:
     
     print(f'\n✅ {n_gen} FORFAIT générés | {n_skip} ignorés | {n_err} erreurs')
     print(f'📂 Sortie : {FORFAIT_OUTPUT_DIR}')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ─── Saisie TCR (ventilation DEBIT/CREDIT depuis _n/_n1) ────
+if 'Saisie TCR' in wb.sheetnames:
+    ws = wb['Saisie TCR']
+    
+    # Colonnes KDZD : F=DEBIT N, G=CREDIT N, H=DEBIT N-1, I=CREDIT N-1
+    COL_TCR = {'deb_n': 6, 'cred_n': 7, 'deb_n1': 8, 'cred_n1': 9}
+    
+    # Lignes des postes (1-based)
+    TCR_ROWS = {
+        'ventes_marchandises': 5,
+        'produits_fabriques': 6,
+        'prestations_services': 7,
+        'ventes_travaux': 8,
+        'produits_annexes': 9,
+        'rabais_remises_ristournes_accordes': 10,
+        'chiffre_affaires_net': 11,
+        'production_stockee_destockee': 12,
+        'production_immobilisee': 13,
+        'subvention_exploitation': 14,
+        'production_exercice': 15,
+        'achats_marchandises_vendues': 16,
+        'matieres_premieres': 17,
+        'autres_approvisionnements': 18,
+        'variation_stocks': 19,
+        'achats_etudes_prestations': 20,
+        'autres_consommations': 21,
+        'rabais_remises_obtenus_achats': 22,
+        'sous_traitance_generale': 23,
+        'locations': 24,
+        'entretien_reparations': 25,
+        'primes_assurances': 26,
+        'personnel_exterieur': 27,
+        'remuneration_intermediaires': 28,
+        'publicite': 29,
+        'deplacements_missions': 30,
+        'autres_services': 31,
+        'rabais_remises_obtenus_services': 32,
+        'consommations_exercice': 33,
+        'valeur_ajoutee_exploitation': 34,
+        'charges_personnel': 35,
+        'impots_taxes_assimiles': 36,
+        'excedent_brut_exploitation': 37,
+        'autres_produits_operationnels': 38,
+        'autres_charges_operationnelles': 39,
+        'dotations_amortissements': 40,
+        'provisions': 41,
+        'pertes_valeur': 42,
+        'reprises_pertes_valeur_provisions': 43,
+        'resultat_operationnel': 44,
+        'produits_financiers': 45,
+        'charges_financieres': 46,
+        'resultat_financier': 47,
+        'resultat_ordinaire': 48,
+        'elements_extraordinaires_produits': 49,
+        'elements_extraordinaires_charges': 50,
+        'resultat_extraordinaire': 51,
+        'impots_exigibles_resultats': 52,
+        'impots_differes_resultats': 53,
+        'resultat_net_exercice': 54,
+    }
+    
+    # Postes qui vont au CREDIT (produits)
+    TCR_CREDIT = {
+        'ventes_marchandises', 'produits_fabriques', 'prestations_services',
+        'ventes_travaux', 'produits_annexes', 'chiffre_affaires_net',
+        'production_stockee_destockee', 'production_immobilisee',
+        'subvention_exploitation', 'production_exercice',
+        'rabais_remises_obtenus_achats', 'rabais_remises_obtenus_services',
+        'valeur_ajoutee_exploitation', 'excedent_brut_exploitation',
+        'autres_produits_operationnels', 'reprises_pertes_valeur_provisions',
+        'produits_financiers', 'elements_extraordinaires_produits',
+    }
+    
+    # Postes qui vont au DEBIT (charges)
+    TCR_DEBIT = {
+        'rabais_remises_ristournes_accordes', 'achats_marchandises_vendues',
+        'matieres_premieres', 'autres_approvisionnements', 'variation_stocks',
+        'achats_etudes_prestations', 'autres_consommations',
+        'sous_traitance_generale', 'locations', 'entretien_reparations',
+        'primes_assurances', 'personnel_exterieur', 'remuneration_intermediaires',
+        'publicite', 'deplacements_missions', 'autres_services',
+        'consommations_exercice', 'charges_personnel', 'impots_taxes_assimiles',
+        'autres_charges_operationnelles', 'dotations_amortissements',
+        'provisions', 'pertes_valeur', 'charges_financieres',
+        'elements_extraordinaires_charges', 'impots_exigibles_resultats',
+        'impots_differes_resultats',
+    }
+    
+    # Postes dont le sens dépend du signe de la valeur
+    TCR_VARIABLE = {
+        'resultat_operationnel', 'resultat_financier', 'resultat_ordinaire',
+        'resultat_extraordinaire', 'resultat_net_exercice',
+    }
+    
+    for key, row in TCR_ROWS.items():
+        # Lire les valeurs depuis le JSON (clés _n et _n1)
+        val_n = tcr.get(f'{key}_n')
+        val_n1 = tcr.get(f'{key}_n1')
+        
+        if val_n is None and val_n1 is None:
+            continue
+        
+        # Ventiler N
+        if val_n is not None:
+            val_abs = abs(val_n)
+            if key in TCR_CREDIT:
+                # Produit → CREDIT (si positif), DEBIT (si négatif)
+                col = COL_TCR['cred_n'] if val_n >= 0 else COL_TCR['deb_n']
+                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
+            elif key in TCR_DEBIT:
+                # Charge → DEBIT (si positif), CREDIT (si négatif)
+                col = COL_TCR['deb_n'] if val_n >= 0 else COL_TCR['cred_n']
+                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
+            elif key in TCR_VARIABLE:
+                # Résultat → sens selon le signe
+                col = COL_TCR['cred_n'] if val_n >= 0 else COL_TCR['deb_n']
+                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
+        
+        # Ventiler N-1
+        if val_n1 is not None:
+            val_abs = abs(val_n1)
+            if key in TCR_CREDIT:
+                col = COL_TCR['cred_n1'] if val_n1 >= 0 else COL_TCR['deb_n1']
+                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
+            elif key in TCR_DEBIT:
+                col = COL_TCR['deb_n1'] if val_n1 >= 0 else COL_TCR['cred_n1']
+                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
+            elif key in TCR_VARIABLE:
+                col = COL_TCR['cred_n1'] if val_n1 >= 0 else COL_TCR['deb_n1']
+                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
