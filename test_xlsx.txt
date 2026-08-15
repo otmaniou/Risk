@@ -1,189 +1,95 @@
 # ════════════════════════════════════════════════════════════
-# CELLULE 14 — GÉNÉRATEUR FORFAIT (propre) | BILANS_V4
-# Détection dynamique des colonnes + lignes par libellé
+# CELLULE 14 — GÉNÉRATEUR FORFAIT (passif auto-détecté) | BILANS_V4
 # ════════════════════════════════════════════════════════════
 import re, shutil
 from openpyxl import load_workbook
 
-def norm(s):
-    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
-
-def kd(v):
+def to_kdzd(v):
     return None if v is None else round(v / 1000.0, 2)
 
-def find_row(ws, label, max_col=4, max_row=90):
-    t = norm(label)
-    if not t:
-        return None
-    for r in range(1, max_row + 1):
-        for c in range(1, max_col + 1):
-            if norm(ws.cell(row=r, column=c).value) == t:
-                return r
-    for r in range(1, max_row + 1):
-        for c in range(1, max_col + 1):
-            v = norm(ws.cell(row=r, column=c).value)
-            if v and (t in v or v in t):
-                return r
-    return None
+def _clean_name(s):
+    return re.sub(r'[^A-Za-z0-9 _-]', '', s or 'ENTREPRISE').strip()
 
-def detect_actif_cols(ws):
-    for r in range(1, 10):
-        vals = {c: norm(ws.cell(row=r, column=c).value) for c in range(1, 16)}
-        b = [c for c, v in vals.items() if 'montantsbruts' in v]
-        a = [c for c, v in vals.items() if 'amortissements' in v]
-        n = [c for c, v in vals.items() if v.startswith('net')]
-        if b and a and n:
-            if len(b) >= 3 and len(n) >= 3:
-                return {'brut_n': b[1], 'amort_n': a[1], 'net_n': n[1], 'net_n1': n[2]}
-            return {'brut_n': b[0], 'amort_n': a[0], 'net_n': n[0], 'net_n1': n[-1]}
+def _norm(s):
+    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
+
+def find_row(ws, patterns, max_col=4, max_row=90):
+    for r in range(1, max_row + 1):
+        for c in range(1, max_col + 1):
+            v = _norm(ws.cell(row=r, column=c).value)
+            if not v: continue
+            for pat in patterns:
+                if _norm(pat) and _norm(pat) in v:
+                    return r
     return None
 
 def detect_passif_cols(ws):
-    for r in range(1, 8):
-        dates = [c for c in range(1, 10)
-                 if re.search(r'\d{2}/\d{4}', str(ws.cell(row=r, column=c).value or ''))]
+    """Trouve les colonnes N et N-1 via les en-têtes de dates 12/20xx."""
+    for r in range(1, 12):
+        dates = [c for c in range(1, 14)
+                 if ws.cell(row=r, column=c).value
+                 and re.search(r'\d{2}/20\d{2}', str(ws.cell(row=r, column=c).value))]
         if len(dates) >= 2:
-            return {'n': dates[0], 'n1': dates[1]}
-    return None
+            return dates[0], dates[1]
+    return None, None
 
-def detect_tcr_cols(ws):
-    for r in range(1, 8):
-        deb = [c for c in range(1, 12) if 'debit' in norm(ws.cell(row=r, column=c).value)]
-        cred = [c for c in range(1, 12) if 'credit' in norm(ws.cell(row=r, column=c).value)]
-        if len(deb) >= 2 and len(cred) >= 2:
-            if len(deb) >= 3:
-                return {'deb_n': deb[1], 'cred_n': cred[1], 'deb_n1': deb[2], 'cred_n1': cred[2]}
-            return {'deb_n': deb[0], 'cred_n': cred[0], 'deb_n1': deb[1], 'cred_n1': cred[1]}
-    return None
+PASSIF_ROWS = {
+    'capital_emis': ['Capital émis'],
+    'capital_non_appele': ['Capital non appelé'],
+    'primes_reserves': ['Primes et réserves'],
+    'ecart_reevaluation': ['Ecarts de réévaluation'],
+    'ecart_equivalence': ['Ecart d équivalence'],
+    'resultat_net_passif': ['Résultat net'],
+    'report_a_nouveau': ['Report à nouveau'],
+    'part_societe_consolidante': ['Part de la société consolidante'],
+    'part_minoritaires': ['Part des minoritaires'],
+    'total_capitaux_propres': ['TOTAL I'],
+    'emprunts_dettes_financieres': ['Emprunts et dettes financières'],
+    'impots_differes_provisionnes': ['Impôts (différés'],
+    'autres_dettes_non_courantes': ['Autres dettes non courantes'],
+    'provisions_produits_avance': ['Provisions et produits'],
+    'total_passifs_non_courants': ['TOTAL II'],
+    'fournisseurs_rattaches': ['Fournisseurs'],
+    'impots_passif': ['Impôts'],
+    'autres_dettes': ['Autres dettes'],
+    'tresorerie_passif': ['Trésorerie Passif'],
+    'total_passifs_courants': ['TOTAL III'],
+    'total_general_passif': ['TOTAL PASSIF'],
+}
 
-ACTIF_L = {
- 'ecarts_acquisition_goodwill': "Ecart d'acquisition",
- 'immobilisations_incorporelles': 'Immobilisations incorporelles',
- 'terrains': 'Terrains', 'batiments': 'Bâtiments',
- 'autres_immobilisations_corporelles': 'Autres immobilisations corporelles',
- 'immobilisations_en_concession': 'Immobilisations en concession',
- 'immobilisations_en_cours': 'Immobilisations en cours',
- 'titres_mis_en_equivalence': 'Titres mis en équivalence',
- 'autres_participations_creances': 'Autres participations',
- 'autres_titres_immobilises': 'Autres titres immobilisés',
- 'prets_actifs_financiers_non_courants': 'Prêts et autres actifs financiers',
- 'impots_differes_actif': 'Impôts différés actif',
- 'total_actif_non_courant': 'TOTAL ACTIF NON COURANT',
- 'stocks_encours': 'Stocks et encours', 'clients': 'Clients',
- 'autres_debiteurs': 'Autres débiteurs', 'impots_assimiles_actif': 'Impôts et assimilés',
- 'autres_creances_assimiles': 'Autres créances et emplois assimilés',
- 'placements_financiers_courants': 'Placements et autres actifs financiers courants',
- 'tresorerie_actif': 'Trésorerie', 'total_actif_courant': 'TOTAL ACTIF COURANT',
- 'total_general_actif': 'TOTAL GENERAL ACTIF'}
-
-PASSIF_L = {
- 'capital_emis': 'Capital émis', 'capital_non_appele': 'Capital non appelé',
- 'primes_reserves': 'Primes et réserves', 'ecart_reevaluation': 'Ecarts de réévaluation',
- 'ecart_equivalence': "Ecart d'équivalence", 'resultat_net_passif': 'Résultat net',
- 'report_a_nouveau': 'Report à nouveau',
- 'part_societe_consolidante': 'Part de la société consolidante',
- 'part_minoritaires': 'Part des minoritaires', 'total_capitaux_propres': 'TOTAL I',
- 'emprunts_dettes_financieres': 'Emprunts et dettes financières',
- 'impots_differes_provisionnes': 'Impôts (différés',
- 'autres_dettes_non_courantes': 'Autres dettes non courantes',
- 'provisions_produits_avance': 'Provisions et produits',
- 'total_passifs_non_courants': 'TOTAL II', 'fournisseurs_rattaches': 'Fournisseurs',
- 'impots_passif': 'Impôts', 'autres_dettes': 'Autres dettes',
- 'tresorerie_passif': 'Trésorerie Passif', 'total_passifs_courants': 'TOTAL III',
- 'total_general_passif': 'TOTAL PASSIF'}
-
-TCR_L = {
- 'ventes_marchandises': 'Ventes de marchandises', 'produits_fabriques': 'Produits fabriqués',
- 'prestations_services': 'Prestations de services', 'ventes_travaux': 'Vente de travaux',
- 'produits_annexes': 'Produits annexes',
- 'rabais_remises_ristournes_accordes': 'Rabais, remises, ristournes accordés',
- 'chiffre_affaires_net': "Chiffre d'affaires net",
- 'production_stockee_destockee': 'Production stockée ou déstockée',
- 'production_immobilisee': 'Production immobilisée',
- 'subvention_exploitation': "Subventions d'exploitation",
- 'production_exercice': "I-Production de l'exercice",
- 'achats_marchandises_vendues': 'Achats de marchandises vendues',
- 'matieres_premieres': 'Matières premières', 'autres_approvisionnements': 'Autres approvisionnements',
- 'variation_stocks': 'Variations des stocks', 'achats_etudes_prestations': "Achats d'études",
- 'autres_consommations': 'Autres consommations', 'rabais_remises_obtenus_achats': 'obtenus sur achats',
- 'sous_traitance_generale': 'Sous-traitance générale', 'locations': 'Locations',
- 'entretien_reparations': 'Entretien, réparations', 'primes_assurances': "Primes d'assurances",
- 'personnel_exterieur': 'Personnel extérieur',
- 'remuneration_intermediaires': "Rémunération d'intermédiaires",
- 'publicite': 'Publicité', 'deplacements_missions': 'Déplacements, missions',
- 'autres_services': 'Autres services', 'rabais_remises_obtenus_services': 'obtenus sur services',
- 'consommations_exercice': 'II-Consommations', 'valeur_ajoutee_exploitation': 'III-Valeur ajoutée',
- 'charges_personnel': 'Charges de personnel', 'impots_taxes_assimiles': 'Impôts et taxes',
- 'excedent_brut_exploitation': 'IV-Excédent brut',
- 'autres_produits_operationnels': 'Autres produits opérationnels',
- 'autres_charges_operationnelles': 'Autres charges opérationnelles',
- 'dotations_amortissements': 'Dotations aux amortissements', 'provisions': 'Provision',
- 'pertes_valeur': 'Pertes de valeur', 'reprises_pertes_valeur_provisions': 'Reprise sur pertes',
- 'resultat_operationnel': 'V-Résultat opérationnel', 'produits_financiers': 'Produits financiers',
- 'charges_financieres': 'Charges financières', 'resultat_financier': 'VI-Résultat financier',
- 'resultat_ordinaire': 'VII-Résultat ordinaire',
- 'elements_extraordinaires_produits': 'extraordinaires (produits',
- 'elements_extraordinaires_charges': 'extraordinaires (Charges',
- 'resultat_extraordinaire': 'VIII-Résultat extraordinaire',
- 'impots_exigibles_resultats': 'Impôts exigibles', 'impots_differes_resultats': 'Impôts différés',
- 'resultat_net_exercice': 'RESULTAT NET'}
+# (garder ici vos dicts ACTIF_ROWS / TCR_ROWS et la logique actif/tcr qui marchent)
+# ...
 
 def generate_forfait(result):
     if not TEMPLATE_FORFAIT.exists():
-        print('Template introuvable:', TEMPLATE_FORFAIT); return None
-    ent = re.sub(r'[^A-Za-z0-9 _-]', '', result.get('entreprise') or 'ENTREPRISE').strip()
-    annee = result.get('exercice') or 'XXXX'
-    out = FORFAIT_OUTPUT_DIR / ('FORFAIT Cas 1_%s_%s.xlsx' % (ent, annee))
+        print(f'❌ Template introuvable : {TEMPLATE_FORFAIT}'); return None
+    out = FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{_clean_name(result.get("entreprise"))}_{result.get("exercice")}.xlsx'
     shutil.copy2(TEMPLATE_FORFAIT, out)
     wb = load_workbook(out)
-    a = result.get('ACTIF') or {}
-    p = result.get('PASSIF') or {}
-    t = result.get('TCR') or {}
+    a, p, t = result.get('ACTIF') or {}, result.get('PASSIF') or {}, result.get('TCR') or {}
     n_wr = 0
 
-    if 'Saisie actif' in wb.sheetnames:
-        ws = wb['Saisie actif']; cols = detect_actif_cols(ws)
-        if cols:
-            for key, lab in ACTIF_L.items():
-                r = find_row(ws, lab)
-                if not r: continue
-                for ca, src in [('brut_n', key+'_brut'), ('amort_n', key+'_amort'),
-                                ('net_n', key+'_n'), ('net_n1', key+'_n1')]:
-                    v = kd(a.get(src))
-                    if v is not None:
-                        ws.cell(row=r, column=cols[ca], value=v); n_wr += 1
+    # ── ACTIF (inchangé, fonctionne) ──
+    # ... votre bloc actif existant ...
 
+    # ── PASSIF (corrigé : colonnes auto-détectées) ──
     if 'Saisie passif' in wb.sheetnames:
-        ws = wb['Saisie passif']; cols = detect_passif_cols(ws)
-        if cols:
-            for key, lab in PASSIF_L.items():
-                r = find_row(ws, lab)
-                if not r: continue
-                v = kd(p.get(key+'_n'))
-                if v is not None: ws.cell(row=r, column=cols['n'], value=v); n_wr += 1
-                v = kd(p.get(key+'_n1'))
-                if v is not None: ws.cell(row=r, column=cols['n1'], value=v); n_wr += 1
+        ws = wb['Saisie passif']
+        col_n, col_n1 = detect_passif_cols(ws)
+        if col_n is None:
+            col_n, col_n1 = 2, 3   # repli
+        for key, pats in PASSIF_ROWS.items():
+            r = find_row(ws, pats, max_col=col_n)   # libellé à gauche des colonnes de données
+            if r is None:
+                continue
+            v = to_kdzd(p.get(f'{key}_n'))
+            if v is not None: ws.cell(row=r, column=col_n, value=v); n_wr += 1
+            v = to_kdzd(p.get(f'{key}_n1'))
+            if v is not None: ws.cell(row=r, column=col_n1, value=v); n_wr += 1
 
-    if 'Saisie TCR' in wb.sheetnames:
-        ws = wb['Saisie TCR']; cols = detect_tcr_cols(ws)
-        if cols:
-            for key, lab in TCR_L.items():
-                r = find_row(ws, lab)
-                if not r: continue
-                for ca, src in [('deb_n', key+'_debit_n'), ('cred_n', key+'_credit_n'),
-                                ('deb_n1', key+'_debit_n1'), ('cred_n1', key+'_credit_n1')]:
-                    v = kd(t.get(src))
-                    if v is not None:
-                        ws.cell(row=r, column=cols[ca], value=v); n_wr += 1
+    # ── TCR (inchangé, fonctionne) ──
+    # ... votre bloc tcr existant ...
 
     wb.save(out); wb.close()
-    print('FORFAIT %s : %d cellules' % (out.name, n_wr))
+    print(f'✅ {out.name} | {n_wr} cellules')
     return out
-
-json_files = sorted(JSON_DIR.glob('*.json'))
-n_gen = 0
-for jf in json_files:
-    d = json.load(open(jf, encoding='utf-8'))
-    if d.get('ACTIF') or d.get('PASSIF') or d.get('TCR'):
-        if generate_forfait(d): n_gen += 1
-print('%d FORFAIT générés -> %s' % (n_gen, FORFAIT_OUTPUT_DIR))
