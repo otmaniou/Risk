@@ -1,160 +1,79 @@
-
-
-```python
-## ═════════ ════════════════════════════════════════════════════════════════════════════════════════════════════════════
-#═══
-# CELLULE CELLULE 14 — 14 — GÉN GÉNÉRATEUR FORÉRATEUR FORFAIT (FAIT (corcorrigé Mrigé MergedCellergedCell + pass + passif)
-#if)
-# ═ ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-import re═
+# ════════════════════════════════════════════════════════════
+# CELLULE 14 — GÉNÉRATEUR FORFAIT (corrigé MergedCell + passif)
+# ════════════════════════════════════════════════════════════
 import re, shutil
-, shutil
-from openpyxlfrom openpyxl.cell.cell.cell import.cell import MergedCell
+from openpyxl.cell.cell import MergedCell
 
- MergedCell
+def _norm(s):
+    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
 
-def _def _norm(s):
-norm(s):
-    return re.sub    return re.sub(r'[^a(r'[^a-z0-9-z0-9]', '', str(s]', '', str(s or '').lower()) or '').lower())
-
-def safe
-
-def safe_write(ws, row_write(ws, row, col, value, col, value):
-    """):
-    """ÉcritÉcrit en g en gérant lesérant les cellules fusionnées ( cellules fusionnées (écécrit aurit au haut-gauche haut-gauche de de la plage la plage).""")."""
-    if value
+def safe_write(ws, row, col, value):
+    """Écrit en gérant les cellules fusionnées (écrit au haut-gauche de la plage)."""
     if value is None:
- is None:
-        return 0        return 0
-    for
-    for mr in list(ws mr in list(ws.merged_cells.r.merged_cells.ranges):
-       anges):
-        if (mr.min if (mr.min_row <= row <=_row <= row <= mr.max_row) mr.max_row) and (mr.min and (mr.min_col <= col <=_col <= col <= mr.max_col): mr.max_col):
-            ws.cell
-            ws.cell(row=mr.min(row=mr.min_row, column=_row, column=mr.min_col).mr.min_col).value = value
-value = value
-            return 1            return 1
-    ws
-    ws.cell(row=row,.cell(row=row, column=col). column=col).value = value
-value = value
-    return    return 1
+        return 0
+    for mr in list(ws.merged_cells.ranges):
+        if (mr.min_row <= row <= mr.max_row) and (mr.min_col <= col <= mr.max_col):
+            ws.cell(row=mr.min_row, column=mr.min_col).value = value
+            return 1
+    ws.cell(row=row, column=col).value = value
+    return 1
 
-def 1
+def to_kdzd(v):
+    return None if v is None else round(v / 1000.0, 2)
 
-def to_kdzd to_kdzd(v):
-   (v):
-    return None if v return None if v is None else is None else round(v /  round(v / 10001000.0, .0, 2)
+# Colonnes ACTIF (déjà OK) : N brut=7 amort=8 net=9 ; N-1 brut=10 amort=11 net=12
+ACTIF_COLS = {'brut_n':7, 'amort_n':8, 'net_n':9, 'brut_n1':10, 'amort_n1':11, 'net_n1':12}
 
-#2)
+# Colonnes PASSIF corrigées : N = E(5), N-1 = F(6)
+PASSIF_COLS = {'n':5, 'n1':6}
 
-# Colon Colonnes ACTnes ACTIF (IF (dédéjà OKjà OK) : N brut) : N brut=7 amort=7 amort=8 net=8 net=9 ;=9 ; N-1 brut N-1 brut=10 amort=10 amort=11 net=11 net=12
-=12
-ACTIFACTIF_COLS = {'_COLS = {'brut_n':brut_n':7, 'am7, 'amort_n':8ort_n':8, 'net_n, 'net_n':9, '':9, 'brut_n1brut_n1':10,':10, 'amort_n 'amort_n1':111':11, 'net_n, 'net_n1':121':12}
+# Colonnes TCR (déjà OK) : DEBIT N=6, CREDIT N=7, DEBIT N-1=8, CREDIT N-1=9
+TCR_COLS = {'debit_n':6, 'credit_n':7, 'debit_n1':8, 'credit_n1':9}
 
-# Colon}
+def generate_forfait(result):
+    if not TEMPLATE_FORFAIT.exists():
+        print(f'❌ Template introuvable : {TEMPLATE_FORFAIT}'); return None
+    ent = re.sub(r'[^A-Za-z0-9 _-]', '', result.get('entreprise') or 'ENTREPRISE').strip()
+    annee = result.get('exercice') or 'XXXX'
+    out = FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{ent}_{annee}.xlsx'
+    shutil.copy2(TEMPLATE_FORFAIT, out)
+    wb = load_workbook(out)
+    a, p, t = result.get('ACTIF') or {}, result.get('PASSIF') or {}, result.get('TCR') or {}
+    n_wr = 0
 
-# Colonnesnes PASSIF corrig PASSIF corrigées : N =ées : N = E( E(5),5), N-1 = N-1 = F(6) F(6)
-PASSIF_COLS
-PASSIF_COLS = {'n': = {'n':5, '5, 'n1':6n1':6}
+    # ── ACTIF ──
+    if 'Saisie actif' in wb.sheetnames:
+        ws = wb['Saisie actif']
+        safe_write(ws, 2, 7, 'Fiscal')                      # Nature bilan
+        if result.get('exercice'):
+            safe_write(ws, 4, 7, result['exercice'])        # Date N
+        for key, row in ACTIF_ROWS.items():
+            for colkey, col in ACTIF_COLS.items():
+                src = f'{key}_{colkey}'
+                n_wr += safe_write(ws, row, col, to_kdzd(a.get(src)))
 
-# Colon}
+    # ── PASSIF (colonnes corrigées) ──
+    if 'Saisie passif' in wb.sheetnames:
+        ws = wb['Saisie passif']
+        for key, row in PASSIF_ROWS.items():
+            n_wr += safe_write(ws, row, PASSIF_COLS['n'],  to_kdzd(p.get(f'{key}_n')))
+            n_wr += safe_write(ws, row, PASSIF_COLS['n1'], to_kdzd(p.get(f'{key}_n1')))
 
-# Colonnes TCR (nes TCR (déjà OK)déjà OK) : DE : DEBIT N=6BIT N=6, CREDIT N, CREDIT N=7, DE=7, DEBIT N-1BIT N-1=8, C=8, CREDIT N-1REDIT N-1=9=9
-TC
-TCR_COLS = {'R_COLS = {'debit_n':6debit_n':6, 'credit_n, 'credit_n':7, '':7, 'debit_n1':debit_n1':8, 'credit8, 'credit_n1':9_n1':9}
+    # ── TCR ──
+    if 'Saisie TCR' in wb.sheetnames:
+        ws = wb['Saisie TCR']
+        for key, row in TCR_ROWS.items():
+            for colkey, col in TCR_COLS.items():
+                n_wr += safe_write(ws, row, col, to_kdzd(t.get(f'{key}_{colkey}')))
 
-def generate}
-
-def generate_forfait_forfait(result):
-   (result):
-    if not TEMPLATE_FOR if not TEMPLATE_FORFAIT.exists():FAIT.exists():
-        print(f
-        print(f'❌ Template'❌ Template introuvable : introuvable : {TEMPLATE_FORFA {TEMPLATE_FORFAIT}'); returnIT}'); return None
-    ent None
-    ent = re = re.sub(r'[^.sub(r'[^A-Za-z0A-Za-z0-9 _-9 _-]', '', result-]', '', result.get('entreprise').get('entreprise') or 'ENTRE or 'ENTREPRISE').stripPRISE').strip()
-    an()
-    annee = result.getnee = result.get('exercice') or('exercice') or 'XXXX'
- 'XXXX'
-    out = FOR    out = FORFAIT_OUTPUT_DIRFAIT_OUTPUT_DIR / f'FOR / f'FORFAIT Cas FAIT Cas 1_{ent}_{1_{ent}_{annee}.xlsxannee}.xlsx'
-    shutil'
-    shutil.copy2.copy2(TEMPLATE_FORFA(TEMPLATE_FORFAIT, out)IT, out)
-    wb
-    wb = load_workbook = load_workbook(out)
-   (out)
-    a, a, p, p, t = result.get t = result.get('ACTIF')('ACTIF') or {}, result or {}, result.get('PASSIF.get('PASSIF') or {}, result') or {}, result.get('TCR.get('TCR') or {}
-') or {}
-    n_wr    n_wr = 0
-
- = 0
-
-    # ─    # ── ACTIF ──
-   ─ ACTIF ──
-    if ' if 'Saisie actifSaisie actif' in wb.sheet' in wb.sheetnames:
-       names:
-        ws = wb ws = wb['Saisie['Saisie actif']
-        actif']
-        safe_write(ws, safe_write(ws, 2,  2, 7, '7, 'Fiscal')                     Fiscal')                      # Nature # Nature bilan
- bilan
-        if result        if result.get('exercice'):.get('exercice'):
-            safe
-            safe_write(ws, _write(ws, 4, 74, 7, result, result['exercice'])['exercice'])        # Date        # Date N
- N
-        for        for key, row in key, row in ACTIF_ROWS.items():
- ACTIF_ROWS.items():
-            for colkey            for colkey, col in ACT, col in ACTIF_COLS.items():IF_COLS.items():
-               
-                src = f src = f'{key}_{'{key}_{colkeycolkey}'
-}'
-                n                n_wr += safe_wr += safe_write(ws, row_write(ws, row, col, to, col, to_kdzd(a_kdzd(a.get(src))).get(src)))
-
-    # ── PASSIF
-
-    # ── PASSIF (colonnes corrig (colonnes corrigées)ées) ──
- ──
-    if 'S    if 'Saisie passifaisie passif' in wb.sheet' in wb.sheetnames:
-       names:
-        ws = wb[' ws = wb['Saisie passSaisie passif']
-       if']
-        for key, row for key, row in PASSIF_ROWS in PASSIF_ROWS.items():
-           .items():
-            n_wr += safe n_wr += safe_write(ws, row_write(ws, row, PASSIF_COLS, PASSIF_COLS['n'], ['n'],  to_kdzd to_kdzd(p.get(f'{(p.get(f'{key}_n')))key}_n')))
-           
-            n_wr += safe n_wr += safe_write(ws, row_write(ws, row, PASSIF_COLS, PASSIF_COLS['n1'],['n1'], to_kdzd to_kdzd(p.get(f'{(p.get(f'{key}_n1key}_n1')))
-
-    #')))
-
-    # ── T ── TCR ──CR ──
-    if '
-    if 'Saisie TSaisie TCR' in wbCR' in wb.sheetnames:
-.sheetnames:
-        ws = wb        ws = wb['Saisie['Saisie TCR'] TCR']
-        for key
-        for key, row in T, row in TCR_ROWS.items():CR_ROWS.items():
-            for col
-            for colkey, colkey, col in TCR_COLS in TCR_COLS.items():
-.items():
-                n_wr +=                n_wr += safe_write(ws, safe_write(ws, row, col, row, col, to_kdzd to_kdzd(t.get(f(t.get(f'{key}_{col'{key}_{colkey}')))key}')))
-
-    wb
-
-    wb.save(out);.save(out); wb.close()
- wb.close()
-    print(f'    print(f'✅ {✅ {out.name} |out.name} | {n_wr} {n_wr} cellules') cellules')
+    wb.save(out); wb.close()
+    print(f'✅ {out.name} | {n_wr} cellules')
     return out
-    return out
-
-# ─
 
 # ── Exécution ──
-n─ Exécution ──
-n_gen = 0_gen = 0
-for jf
-for jf in sorted(JSON in sorted(JSON_DIR.glob('*._DIR.glob('*.json')):
-json')):
-    d = json    d = json.load(open(jf.load(open(jf, encoding='utf, encoding='utf-8'))
--8'))
-    if d.get    if d.get('ACTIF')('ACTIF') or d.get(' or d.get('PASSIF') orPASSIF') or d.get('TC d.get('TCR'):
-       R'):
-        if generate_forfait if generate_forfait(d): n(d): n_gen += 1_gen += 1
-print(f'
-print(f'✅ {n_gen✅ {n_gen} FORFAIT} FORFAIT générés → { générés → {FORFAIT_OUTPUTFORFAIT_OUTPUT_DIR}')_DIR}')
+n_gen = 0
+for jf in sorted(JSON_DIR.glob('*.json')):
+    d = json.load(open(jf, encoding='utf-8'))
+    if d.get('ACTIF') or d.get('PASSIF') or d.get('TCR'):
+        if generate_forfait(d): n_gen += 1
+print(f'✅ {n_gen} FORFAIT générés → {FORFAIT_OUTPUT_DIR}')
