@@ -1,108 +1,272 @@
-# ════════════════════════════════════════════════════════════
-# CELLULE AUTONOME — GÉNÉRATEUR FORFAIT (sans FORFAIT_COORDS)
-# Détection dynamique des colonnes + remplissage par libellé
-# ════════════════════════════════════════════════════════════
-import re, shutil, json
-from openpyxl import load_workbook
 
-def _norm(s): return re.sub(r'[^a-z0-9]','',str(s or '').lower())
 
-def to_kdzd(v):
-    if v is None: return None
-    return round(v/1000.0, 2)
+```python
+# ═════# ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+# G═
+# GÉNÉRATEURÉNÉRATEUR FORFA FORFAIT v2 —IT v2 — an ancrcrage par libellage par libellés (corrés (corrige déige décalage passcalage passif + TCRif + TCR null)
+# null)
+# ═ ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+import re═
+import re, json, shutil, json, shutil, unicodedata, unicodedata
+from openpy
+from openpyxl import load_workxl import load_workbook
 
-def _clean_name(s):
-    return re.sub(r'[^A-Za-z0-9 _-]','', s or 'ENTREPRISE').strip()
+def _book
 
-def find_row(ws, label, max_row=90, cols=(1,2,3)):
-    t=_norm(label)
-    if not t: return None
-    for r in range(1, max_row+1):
-        for c in cols:
-            v=ws.cell(row=r, column=c).value
-            if v is not None and t in _norm(v): return r
-    return None
+def _norm(s):
+norm(s):
+    s = unic    s = unicodedata.normalize('odedata.normalize('NFKD',NFKD', str(s str(s or '' or ''))
+    s))
+    s = ''.join(ch = ''.join(ch for ch in s for ch in s if not unicoded if not unicodedata.combiningata.combining(ch))(ch))
+    return re
+    return re.sub(r'[^.sub(r'[^a-z0-a-z0-9]', '', s9]', '', s.lower())
 
-def detect_actif_cols(ws):
-    for r in range(1,12):
-        brut=[c for c in range(1,20) if ws.cell(row=r,column=c).value and 'montantsbruts' in _norm(ws.cell(row=r,column=c).value)]
-        if len(brut)>=2:
-            b,b1=brut[0],brut[1]
-            return dict(brut_n=b,amort_n=b+1,net_n=b+2,brut_n1=b1,amort_n1=b1+1,net_n1=b1+2)
-        if len(brut)==1:
-            b=brut[0]
-            return dict(brut_n=b,amort_n=b+1,net_n=b+2,brut_n1=b+3,amort_n1=b+4,net_n1=b+5)
-    return dict(brut_n=2,amort_n=3,net_n=4,brut_n1=5,amort_n1=6,net_n1=7)
+.lower())
 
-def detect_passif_cols(ws):
-    for r in range(1,8):
-        ys=[c for c in range(1,10) if ws.cell(row=r,column=c).value and re.search(r'\d{2}/\d{4}',str(ws.cell(row=r,column=c).value))]
-        if len(ys)>=2: return ys[0], ys[1]
-    return 2,3
-
-def detect_tcr_cols(ws):
-    for r in range(1,8):
-        deb=[c for c in range(1,12) if ws.cell(row=r,column=c).value and 'debit' in _norm(ws.cell(row=r,column=c).value)]
-        cred=[c for c in range(1,12) if ws.cell(row=r,column=c).value and 'credit' in _norm(ws.cell(row=r,column=c).value)]
-        if deb and cred:
-            return dict(deb_n=deb[0],cred_n=cred[0],
-                        deb_n1=deb[1] if len(deb)>1 else deb[0]+2,
-                        cred_n1=cred[1] if len(cred)>1 else cred[0]+2)
-    return dict(deb_n=3,cred_n=4,deb_n1=5,cred_n1=6)
-
-def generate_forfait(result):
-    if not TEMPLATE_FORFAIT.exists():
-        print(f'❌ Template introuvable : {TEMPLATE_FORFAIT}'); return None
-    ent=_clean_name(result.get('entreprise')); annee=result.get('exercice') or 'XXXX'
-    out=FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{ent}_{annee}.xlsx'
-    shutil.copy2(TEMPLATE_FORFAIT, out)
-    wb=load_workbook(out)
-    a=result.get('ACTIF') or {}; p=result.get('PASSIF') or {}; t=result.get('TCR') or {}
-    n_written=0
-
-    # ── ACTIF ──
-    if 'Saisie actif' in wb.sheetnames:
-        ws=wb['Saisie actif']; cols=detect_actif_cols(ws)
-        for key,label in SCHEMAS['ACTIF']['postes'].items():
-            r=find_row(ws,label)
-            if not r: continue
-            for ca,jk in [('brut_n','_brut'),('amort_n','_amort'),('net_n','_n'),('net_n1','_n1')]:
-                v=to_kdzd(a.get(key+jk))
-                if v is not None: ws.cell(row=r,column=cols[ca],value=v); n_written+=1
-
-    # ── PASSIF ──
-    if 'Saisie passif' in wb.sheetnames:
-        ws=wb['Saisie passif']; cn,cn1=detect_passif_cols(ws)
-        for key,label in SCHEMAS['PASSIF']['postes'].items():
-            r=find_row(ws,label)
-            if not r: continue
-            v=to_kdzd(p.get(key+'_n'))
-            if v is not None: ws.cell(row=r,column=cn,value=v); n_written+=1
-            v=to_kdzd(p.get(key+'_n1'))
-            if v is not None: ws.cell(row=r,column=cn1,value=v); n_written+=1
-
-    # ── TCR ──
-    if 'Saisie TCR' in wb.sheetnames:
-        ws=wb['Saisie TCR']; cols=detect_tcr_cols(ws)
-        for key,label in SCHEMAS['TCR']['postes'].items():
-            r=find_row(ws,label,cols=(1,2))
-            if not r: continue
-            for jk,col in [('_debit_n',cols['deb_n']),('_credit_n',cols['cred_n']),
-                           ('_debit_n1',cols['deb_n1']),('_credit_n1',cols['cred_n1'])]:
-                v=to_kdzd(t.get(key+jk))
-                if v is not None: ws.cell(row=r,column=col,value=v); n_written+=1
-
-    wb.save(out); wb.close()
-    print(f'✅ {out.name} | {n_written} cellules remplies')
+def _rows(wsdef _rows(ws,, label label_cols, max_row_cols, max_row=9=90):
+   0):
+    out = [] out = []
+    for r
+    for r in range(1 in range(1, min(ws.max, min(ws.max_row, max_row_row, max_row) + 1) + 1):
+        txt):
+        txt = '' = ''
+        for c
+        for c in label_cols: in label_cols:
+            v
+            v = ws.cell(row = ws.cell(row=r, column=c=r, column=c).value
+).value
+            if v is            if v is not None not None: txt += ': txt += ' ' + ' + str(v)
+ str(v)
+        n = _        n = _norm(txt)
+norm(txt)
+        if n:        if n: out.append((r out.append((r, n)), n))
+    return out
     return out
 
-# ── Boucle ──
-n_gen=0
-for jf in sorted(JSON_DIR.glob('*.json')):
-    try:
-        d=json.load(open(jf,encoding='utf-8'))
-        if not (d.get('ACTIF') or d.get('PASSIF') or d.get('TCR')): continue
-        if generate_forfait(d): n_gen+=1
-    except Exception as e:
-        print(f'❌ {jf.stem}: {e}')
-print(f'✅ {n_gen} FORFAIT .xlsx générés → {FORFAIT_OUTPUT_DIR}')
+def _find
+
+def _find(rows, patterns(rows, patterns, used, used):
+    for):
+    for pat in patterns: pat in patterns:
+        p
+        p = _ = _norm(pat)norm(pat)
+        for r
+        for r, n in rows, n in rows:
+            if:
+            if r in used r in used: continue
+           : continue
+            if n if n == p == p or n or n.startswith(p).startswith(p) or ( or (lenlen(p) >(p) > 6 and p 6 and p in n in n):
+               ):
+                used.add(r); used.add(r); return r
+    return r
+    return None
+
+ return None
+
+def todef to_kdzd(v_kdzd(v): return): return None None if v is None if v is None else round else round(v /(v / 100 1000.0,0.0, 2)
+
+ 2)
+
+# motifs# motifs → → clé clé JSON (ordre JSON (ordre = priorité = priorité))
+ACT
+ACTIFIF_L_LBLBL = [
+ (' = [
+ ('EEcart d acquisitioncart d acquisition','ec','ecarts_acquisition_goodarts_acquisition_goodwill'),will'), ('Immobilisations ('Immobilisations incorporel incorporelles','immobilles','immobilisations_incorporeisations_incorporelles'),
+lles'),
+ ('Terr ('Terrains','terrains','terrains'), ('Batains'), ('Batiments','batiments','batiments'), ('Autiments'), ('Autres immobilisations corpres immobilisations corporelles','orelles','autres_immobilisationsautres_immobilisations_corporel_corporelles'),
+les'),
+ ('Immobilisations ('Immobilisations en concession','imm en concession','immobilisations_en_conobilisations_en_concession'), ('Immcession'), ('Immobilisations en coursobilisations en cours','immobilisations','immobilisations_en_cours'),_en_cours'),
+ ('Tit
+ ('Titres misres mis en equivalence','tit en equivalence','titres_mis_enres_mis_en_equivalence'), ('_equivalence'), ('Autres participAutres participations','autres_partations','autres_participations_creancesicipations_creances'),
+ ('Aut'),
+ ('Autres titres immobilisesres titres immobilises','autres_t','autres_titres_immobilitres_immobilises'), ('Pises'), ('Prets et autres actifsrets et autres actifs financiers','pre financiers','prets_actifs_fints_actifs_financiers_non_canciers_non_courants'),
+ourants'),
+ ('Impots differ ('Impots differes actifes actif','imp','impots_differesots_differes_actif'), ('_actif'), ('TOTAL ACTIF NONTOTAL ACTIF NON COURANT COURANT','total_actif','total_actif_non_courant_non_courant'),
+ ('Stock'),
+ ('Stocks et encourss et encours','stocks_encours','stocks_encours'), ('Clients',''), ('Clients','clients'), ('Autclients'), ('Autres debiteurs','res debiteurs','autres_debiteursautres_debiteurs'),
+ ('Imp'),
+ ('Impots & Assimilesots & Assimiles','impots_ass','impots_assimiles_actifimiles_actif'), ('Aut'), ('Autres creres creances','ances','autres_creances_assautres_creances_assimiles'),
+imiles'),
+ ('Pl ('Placements et autres actifsacements et autres actifs','placements_fin','placements_financiers_couranciers_courants'), ('Tants'), ('Tresorerie','resorerie','tresorerie_acttresorerie_actif'),
+if'),
+ ('TOTAL ACTIF ('TOTAL ACTIF COURANT','total COURANT','total_actif_cour_actif_courant'), ('TOTALant'), ('TOTAL GENERAL ACTIF',' GENERAL ACTIF','total_general_actiftotal_general_actif')]')]
+PASS
+PASSIF_LBLIF_LBL = [
+ (' = [
+ ('Capital emisCapital emis','capital_em','capital_emis'), ('Capitalis'), ('Capital non appe non appele','capital_nonle','capital_non_appele'),_appele'), ('Primes et ('Primes et reserves','pr reserves','primes_reserves'),imes_reserves'),
+ ('
+ ('Ecarts de reEcarts de reevaluation','ecartevaluation','ecart_reevaluation'),_reevaluation'), ('Ecart d ('Ecart d equivalence',' equivalence','ecart_equivalenceecart_equivalence'),
+ ('Result'),
+ ('Resultat net','resultat net','resultat_net_passifat_net_passif'), ('Report a'), ('Report a nouveau','report nouveau','report_a_nouveau_a_nouveau'),
+'),
+ ('Part de la ('Part de la societe consolid societe consolidante','part_sante','part_societe_consolidociete_consolidante'), ('Partante'), ('Part des minoritaires',' des minoritaires','part_minoritaires'),part_minoritaires'),
+ ('TOTAL I
+ ('TOTAL I','total_cap','total_capitaux_propresitaux_propres'), ('Empr'), ('Emprunts et detunts et dettes financtes financieres','emprieres','emprunts_dettes_finunts_dettes_financieres'),
+ancieres'),
+ ('Impots ( ('Impots (ddifferes','ifferes','impots_dimpots_differes_provisionifferes_provisionnes'), ('Autnes'), ('Autres detres dettes non courantestes non courantes','autres_det','autres_dettes_non_courtes_non_courantes'),
+antes'),
+ ('Provisions et ('Provisions et produits',' produits','provisions_proprovisions_produits_avduits_avance'), ('TOTALance'), ('TOTAL II','total_pass II','total_passifs_non_courifs_non_courants'),
+ants'),
+ ('Fournisseurs ('Fournisseurs','fournisseurs','fournisseurs_rattaches'),_rattaches'), ('T ('Tresorerresorerie Passif','ie Passif','tresorerie_passtresorerie_passif'),
+if'),
+ ('Aut ('Autres detres dettes','autrestes','autres_dettes'), ('_dettes'), ('Impots','impImpots','impots_passif'),ots_passif'),
+ ('
+ ('TOTAL III','totalTOTAL III','total_passifs_cour_passifs_courants'), ('TOTALants'), ('TOTAL PASSIF','total PASSIF','total_general_passif')]_general_passif')]
+TC
+TCR_LBL =R_LBL = [
+ (' [
+ ('Ventes de marchandisesVentes de marchandises','vent','ventes_marchandises'), ('Produes_marchandises'), ('Produits fabriques','produits_fabriques'),
+ ('Prestations de services','prestations_services'), ('Vente de travaux','ventes_travaux'),
+ ('Produits annexes','produits_annexesits fabriques','produits_fabriques'),
+ ('Prestations de services','prestations_services'), ('Vente de travaux','ventes_travaux'),
+ ('Produits annexes','produits_annexes'), ('R'), ('Rabais, remabais, remises, ristises, ristournes accordesournes accordes','rabais_rem','rabais_remises_ristournises_ristournes_accordes'),es_accordes'),
+ ('
+ ('Chiffre dChiffre d affaires affaires net','chiff net','chiffre_affaires_netre_affaires_net'), ('Production'), ('Production stockee stockee','production','production_stockee_destock_stockee_destockee'),
+ee'),
+ ('Production immobilise ('Production immobilisee','production_imme','production_immobilisee'),obilisee'), ('Subventions d ('Subventions d exploitation','sub exploitation','subvention_exploitationvention_exploitation'),
+ ('I'),
+ ('I-Production','-Production','production_exerciceproduction_exercice'), ('Achats'), ('Achats de marchandises',' de marchandises','achats_marchachats_marchandises_vendandises_vendues'),
+ues'),
+ ('Matieres premier ('Matieres premieres','matiereses','matieres_premieres'),_premieres'), ('Aut ('Autres approvisionnementsres approvisionnements','autres_approvisionnements'),
+','autres_approvisionnements'),
+ ('Variations des ('Variations des stocks','variation stocks','variation_stocks'), ('_stocks'), ('Achats d etAchats d etudes','achudes','achats_etudes_pats_etudes_prestations'),
+restations'),
+ ('Autres consomm ('Autres consommations','autres_consations','autres_consommations'), ('ommations'), ('obobtenus sur achatstenus sur achats','rabais_rem','rabais_remises_obtenusises_obtenus_achats'),_achats'),
+ ('S
+ ('Sous-traitanceous-traitance','sous','sous_traitance_generale_traitance_generale'), ('Locations',''), ('Locations','locations'), ('Entlocations'), ('Entretien','retien','entretien_reentretien_reparations'),
+parations'),
+ ('Primes d ('Primes d assurances','pr assurances','primes_assurancesimes_assurances'), ('Person'), ('Personnel exterieurnel exterieur','personnel_exterieur','personnel_exterieur'),
+ ('Rem'),
+ ('Remuneration duneration d intermediaires',' intermediaires','remuneration_interremuneration_intermediaires'),mediaires'), ('Publicite',' ('Publicite','publicite'),
+publicite'),
+ ('Deplacements',' ('Deplacements','dedeplacements_missions'),placements_missions'), ('Autres services ('Autres services','autres_services','autres_services'),
+ ('ob'),
+ ('obtenus sur servicestenus sur services','rab','rabais_remais_remises_obtenusises_obtenus_services'), ('II_services'), ('II-Consommations-Consommations','cons','consommations_exercommations_exercice'),
+ice'),
+ ('III-Valeur ('III-Valeur ajoutee ajoutee','valeur_','valeur_ajoutee_expajoutee_exploitation'), ('loitation'), ('Charges de personnelCharges de personnel','charges_person','charges_personnel'),
+ ('nel'),
+ ('Impots et taxesImpots et taxes','impots_t','impots_taxes_assimilesaxes_assimiles'), ('IV-'), ('IV-Excedent','Excedent','excedent_brexcedent_brut_exploitationut_exploitation'),
+ ('Aut'),
+ ('Autres produits operationnelsres produits operationnels','autres','autres_produits_operation_produits_operationnels'), ('Autnels'), ('Autres charges operationnellesres charges operationnelles','autres_charges','autres_charges_operationnelles'),
+_operationnelles'),
+ ('Dotations aux ('Dotations aux amortissements','dot amortissements','dotations_amortissementsations_amortissements'), ('Re'), ('Reprise sur pertesprise sur pertes','reprises_p','reprises_pertes_valeur_proertes_valeur_provisions'),
+visions'),
+ ('P ('Pertes de valeur','ertes de valeur','pertes_valeurpertes_valeur'), ('Provision'), ('Provision','provisions','provisions'), (''), ('V-V-Resultat operationResultat operationnelnel','resultat_operation','resultat_operationnel'),
+ ('nel'),
+ ('Produits financiersProduits financiers','produ','produits_financiersits_financiers'), ('Ch'), ('Charges financarges financieres','charges_finieres','charges_financieres'),
+ancieres'),
+ ('VI- ('VI-Resultat financierResultat financier','resultat_fin','resultat_financier'), ('VIIancier'), ('VII-Resultat ord-Resultat ordinaire','resultatinaire','resultat_ordinaire'),
+_ordinaire'),
+ ('extra ('extraordinaires (ordinaires (produits','elementsproduits','elements_extraordinaires_pro_extraordinaires_produits'), ('duits'), ('extraordinaires (extraordinaires (Charges','elementsCharges','elements_extraordinaires_ch_extraordinaires_charges'),
+ ('arges'),
+ ('VIII-VIII-ResultatResultat','result','resultatat_extraordinaire'),_extraordinaire'), ('Impots exig ('Impots exigibles','ibles','impots_exigimpots_exigibles_resultats'),ibles_resultats'),
+ ('Impots
+ ('Impots differes',' differes','impots_dimpots_differes_resultatsifferes_resultats'), ('IX -'), ('IX - RESULTAT NET RESULTAT NET','resultat_net','resultat_net_exercice')]_exercice')]
+
+def generate_for
+
+def generate_forfait(result):
+fait(result):
+    if not TEMPLATE    if not TEMPLATE_FORFAIT.exists_FORFAIT.exists(): print(): print(f'❌(f'❌ Template introuvable Template introuvable { {TEMPLATE_FORFAITTEMPLATE_FORFAIT}'); return None}'); return None
+    out =
+    out = FORFAIT_OUTPUT FORFAIT_OUTPUT_DIR / f'_DIR / f'FORFAIT CasFORFAIT Cas 1_{_ 1_{_clean_name(result.getclean_name(result.get("entreprise"))("entreprise"))}_{result}_{result.get("exercice.get("exercice") or "XXXX") or "XXXX"}.xlsx'"}.xlsx'
+    shutil.copy
+    shutil.copy2(TEMPLATE_FOR2(TEMPLATE_FORFAIT, outFAIT, out)
+    wb)
+    wb = load_workbook = load_workbook(out)
+   (out)
+    a, a, p, t = p, t = result.get('ACT result.get('ACTIF') or {},IF') or {}, result.get('PASS result.get('PASSIF') or {},IF') or {}, result.get('TC result.get('TCR') or {}R') or {}
+    n_wr
+    n_wr = 0
+
+ = 0
+
+    # ACT    # ACTIF (colonIF (colonnes N =nes N = C,D C,D,E ;,E ; N-1 net N-1 net = H = H) —) — déjà déjà bon bon, on, on garde garde
+    if
+    if 'Saisie 'Saisie actif' in wb actif' in wb.sheetnames:
+.sheetnames:
+        ws = wb        ws = wb['Saisie['Saisie actif']; actif']; used = set used = set()
+        for()
+        for pat, pat, key in ACT key in ACTIF_LBL:IF_LBL:
+            r =
+            r = _find(_ _find(_rows(ws, (rows(ws, (2, 32, 3)), [)), [pat],pat], used)
+            used)
+            if r is None if r is None: continue: continue
+           
+            for col, suf for col, suf in [( in [(3,'3,'brut'), (brut'), (4,'4,'amort'), (amort'), (5,'5,'n'),n'), (8,' (8,'n1')]:n1')]:
+               
+                v = to_k v = to_kdzd(a.getdzd(a.get(f'{key}_{(f'{key}_{suf}suf}')) if')) if suf != suf != 'n1 'n1' else to' else to_kdzd(a_kdzd(a.get(f'{key.get(f'{key}_n1'))}_n1'))
+               
+                if v is not if v is not None: ws None: ws.cell(row=r.cell(row=r, column=col, column=col, value=v);, value=v); n_wr +=  n_wr += 1
+
+    #1
+
+    # PASSIF (N PASSIF (N = C, N = C, N-1 = D-1 = D)
+)
+    if 'S    if 'Saisie passifaisie passif' in wb.sheet' in wb.sheetnames:
+       names:
+        ws = wb ws = wb['Saisie['Saisie passif']; passif']; used used = set(); = set(); rows = _rows rows = _rows(ws, (2(ws, (2, 3)), 3))
+        for pat
+        for pat, key in PASS, key in PASSIF_LBL:IF_LBL:
+            r =
+            r = _find(rows, _find(rows, [pat], used [pat], used)
+            if)
+            if r is None: r is None: print(f'   print(f'   ⚠️ pass ⚠️ passif non trouvé:if non trouvé: {pat}'); {pat}'); continue
+ continue
+            v            v = to_kdz = to_kdzd(pd(p.get(f'{key.get(f'{key}_n'))
+}_n'))
+            if v is            if v is not None: ws not None: ws.cell(row=r.cell(row=r, column=3, column=3, value=v);, value=v); n_wr +=  n_wr += 1
+            v1
+            v = to_kdz = to_kdzd(p.get(fd(p.get(f'{key}_n'{key}_n1'))
+1'))
+            if v is            if v is not None: ws not None: ws.cell(row=r,.cell(row=r, column=4, column=4, value=v); n value=v); n_wr += 1_wr += 1
+
+    # T
+
+    # TCR (ECR (E=DEBIT N=DEBIT N, F=C, F=CREDIT N, GREDIT N, G=DEBIT N=DEBIT N-1, H-1, H=CREDIT N-=CREDIT N-1)
+   1)
+    if ' if 'Saisie TSaisie TCR' in wbCR' in wb.sheetnames:
+.sheetnames:
+        ws = wb        ws = wb['Saisie['Saisie TCR']; TCR']; used = set(); used = set(); rows = _rows rows = _rows(ws, (2(ws, (2, 3,, 3, 4))
+ 4))
+        n        n_tcr_tcr = 0
+ = 0
+        for pat        for pat, key in T, key in TCR_LBL:CR_LBL:
+            r =
+            r = _find(rows, _find(rows, [pat], [pat], used) used)
+            if r
+            if r is None: print is None: print(f'   ⚠(f'   ⚠️ t️ tcr non trouvé:cr non trouvé: {pat}'); {pat}'); continue
+            for continue
+            for col, suf col, suf in [( in [(5,'5,'debit_n'), (debit_n'), (6,'credit6,'credit_n'), (_n'), (7,'7,'debit_n1'),debit_n1'), (8,'credit (8,'credit_n1')]:_n1')]:
+               
+                v = to_k v = to_kdzd(t.getdzd(t.get(f'{key}_{(f'{key}_{suf}'))suf}'))
+               
+                if v is not if v is not None: ws None: ws.cell(row=r.cell(row=r, column=col, column=col, value=v);, value=v); n_wr n_wr += 1; += 1; n_tcr += n_tcr += 1
+        1
+        if if n_tcr == n_tcr == 0:
+ 0:
+            nz            nz = [ = [k for k,k for k, v in t v in t.items() if v.items() if v is not None] is not None]
+            print(f
+            print(f'   ⚠️ TCR'   ⚠️ TCR: 0 valeur: 0 valeur écrite | écrite | clés JSON clés JSON non nul non nulles:les: {len(nz {len(nz)} ex)} ex: {nz: {nz[:5]}[:5]}')
+
+    wb')
+
+    wb.save(out);.save(out); wb.close()
+ wb.close()
+    print(f'    print(f'✅ {✅ {out.name} |out.name} | {n_wr {n_wr} valeurs éc} valeurs écrites')
+   rites')
+    return out
+
+ return out
+
+n_gen =n_gen = 0
+for 0
+for jf in sorted jf in sorted(JSON_DIR.glob('(JSON_DIR.glob('*.json')):*.json')):
+    d
+    d = json.load(open = json.load(open(jf, encoding(jf, encoding='utf-8='utf-8'))
+    if'))
+    if not (d.get not (d.get('ACTIF')('ACTIF') or d.get(' or d.get('PASSIF') orPASSIF') or d.get('TC d.get('TCR')): continueR')): continue
+    if
+    if generate_forfait(d generate_forfait(d): n_gen +=): n_gen += 1
+print 1
+print(f'✅ {(f'✅ {n_gen} FORn_gen} FORFAIT régFAIT régénérésénérés → {FORFA → {FORFAIT_OUTPUT_DIR}')IT_OUTPUT_DIR}')
