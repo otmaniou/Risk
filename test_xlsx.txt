@@ -1,79 +1,42 @@
 # ════════════════════════════════════════════════════════════
-# CELLULE 14 — GÉNÉRATEUR FORFAIT (corrigé MergedCell + passif)
+# CELLULE 10bis — DEBUG | BILANS_V8 | diagnostic PDF en erreur
+# Objectif : localiser l'étape exacte qui lève l'exception (message vide).
+# Entrées : nom du PDF en échec.
+# Sorties : statut par étape + traceback complet.
+# Règles : ne modifie rien, ne produit aucun JSON.
 # ════════════════════════════════════════════════════════════
-import re, shutil
-from openpyxl.cell.cell import MergedCell
+import traceback
 
-def _norm(s):
-    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
+NOM_PDF = 'Bilan MOF PHARMA 2025.pdf'
+pdf_path = INPUT_DIR / NOM_PDF
 
-def safe_write(ws, row, col, value):
-    """Écrit en gérant les cellules fusionnées (écrit au haut-gauche de la plage)."""
-    if value is None:
-        return 0
-    for mr in list(ws.merged_cells.ranges):
-        if (mr.min_row <= row <= mr.max_row) and (mr.min_col <= col <= mr.max_col):
-            ws.cell(row=mr.min_row, column=mr.min_col).value = value
-            return 1
-    ws.cell(row=row, column=col).value = value
-    return 1
+print('fichier:', pdf_path, '| existe:', pdf_path.exists(), '| taille:', pdf_path.stat().st_size if pdf_path.exists() else 0)
 
-def to_kdzd(v):
-    return None if v is None else round(v / 1000.0, 2)
+# Étape 1 : ouverture PDF
+try:
+    doc = fitz.open(pdf_path)
+    print('ETAPE 1 OK | ouverture | nb pages:', len(doc), '| encrypte:', doc.is_encrypted)
+    doc.close()
+except Exception as e:
+    print('ETAPE 1 ECHEC | ouverture |', type(e).__name__, repr(e))
 
-# Colonnes ACTIF (déjà OK) : N brut=7 amort=8 net=9 ; N-1 brut=10 amort=11 net=12
-ACTIF_COLS = {'brut_n':7, 'amort_n':8, 'net_n':9, 'brut_n1':10, 'amort_n1':11, 'net_n1':12}
+# Étape 2 : rendu + deskew + blank
+try:
+    pages = pdf_to_pages(pdf_path)
+    print('ETAPE 2 OK | rendu | pages:', len(pages))
+    actives = [p for p in pages if not is_blank(p['image'])]
+    print('ETAPE 2 | pages actives:', len(actives), '| blanches:', len(pages) - len(actives))
+except Exception:
+    print('ETAPE 2 ECHEC | rendu')
+    traceback.print_exc()
+    actives = []
 
-# Colonnes PASSIF corrigées : N = E(5), N-1 = F(6)
-PASSIF_COLS = {'n':5, 'n1':6}
-
-# Colonnes TCR (déjà OK) : DEBIT N=6, CREDIT N=7, DEBIT N-1=8, CREDIT N-1=9
-TCR_COLS = {'debit_n':6, 'credit_n':7, 'debit_n1':8, 'credit_n1':9}
-
-def generate_forfait(result):
-    if not TEMPLATE_FORFAIT.exists():
-        print(f'❌ Template introuvable : {TEMPLATE_FORFAIT}'); return None
-    ent = re.sub(r'[^A-Za-z0-9 _-]', '', result.get('entreprise') or 'ENTREPRISE').strip()
-    annee = result.get('exercice') or 'XXXX'
-    out = FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{ent}_{annee}.xlsx'
-    shutil.copy2(TEMPLATE_FORFAIT, out)
-    wb = load_workbook(out)
-    a, p, t = result.get('ACTIF') or {}, result.get('PASSIF') or {}, result.get('TCR') or {}
-    n_wr = 0
-
-    # ── ACTIF ──
-    if 'Saisie actif' in wb.sheetnames:
-        ws = wb['Saisie actif']
-        safe_write(ws, 2, 7, 'Fiscal')                      # Nature bilan
-        if result.get('exercice'):
-            safe_write(ws, 4, 7, result['exercice'])        # Date N
-        for key, row in ACTIF_ROWS.items():
-            for colkey, col in ACTIF_COLS.items():
-                src = f'{key}_{colkey}'
-                n_wr += safe_write(ws, row, col, to_kdzd(a.get(src)))
-
-    # ── PASSIF (colonnes corrigées) ──
-    if 'Saisie passif' in wb.sheetnames:
-        ws = wb['Saisie passif']
-        for key, row in PASSIF_ROWS.items():
-            n_wr += safe_write(ws, row, PASSIF_COLS['n'],  to_kdzd(p.get(f'{key}_n')))
-            n_wr += safe_write(ws, row, PASSIF_COLS['n1'], to_kdzd(p.get(f'{key}_n1')))
-
-    # ── TCR ──
-    if 'Saisie TCR' in wb.sheetnames:
-        ws = wb['Saisie TCR']
-        for key, row in TCR_ROWS.items():
-            for colkey, col in TCR_COLS.items():
-                n_wr += safe_write(ws, row, col, to_kdzd(t.get(f'{key}_{colkey}')))
-
-    wb.save(out); wb.close()
-    print(f'✅ {out.name} | {n_wr} cellules')
-    return out
-
-# ── Exécution ──
-n_gen = 0
-for jf in sorted(JSON_DIR.glob('*.json')):
-    d = json.load(open(jf, encoding='utf-8'))
-    if d.get('ACTIF') or d.get('PASSIF') or d.get('TCR'):
-        if generate_forfait(d): n_gen += 1
-print(f'✅ {n_gen} FORFAIT générés → {FORFAIT_OUTPUT_DIR}')
+# Étape 3 : classification VLM
+if actives:
+    try:
+        mini = [resize(p['image'], 600) for p in actives]
+        reps = ask_batch(PROMPT_CLASSIF, mini)
+        print('ETAPE 3 OK | classification |', [r['text'][:30] for r in reps])
+    except Exception:
+        print('ETAPE 3 ECHEC | classification VLM')
+        traceback.print_exc()
