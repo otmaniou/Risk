@@ -130,3 +130,15 @@ for jf in json_files:
     if d.get('ACTIF') or d.get('PASSIF') or d.get('TCR'):
         if generate_forfait(d): n_gen += 1
 print(f'✅ {n_gen} FORFAIT générés → {FORFAIT_OUTPUT_DIR}')
+
+
+
+
+
+
+
+wb = load_workbook(FORFAIT_OUTPUT_DIR / sorted(FORFAIT_OUTPUT_DIR.glob('*.xlsx'))[0].name)
+ws = wb['Saisie actif'];  print('ACTIF  L33 (TOTAL GENERAL) :', [ws.cell(row=33, column=c).value for c in (2,3,4,5,6,7)])
+ws = wb['Saisie passif']; print('PASSIF L25 (TOTAL PASSIF) :', [ws.cell(row=25, column=c).value for c in (2,3)])
+ws = wb['Saisie TCR'];    print('TCR L9 (CA net) :', [ws.cell(row=9, column=c).value for c in (3,4,5,6)])
+
