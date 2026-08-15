@@ -108,3 +108,25 @@ def generate_forfait(result):
     wb.save(out); wb.close()
     print(f'✅ {out.name} | {n_wr} cellules')
     return out
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+json_files = sorted(JSON_DIR.glob('*.json'))
+n_gen = 0
+for jf in json_files:
+    d = json.load(open(jf, encoding='utf-8'))
+    if d.get('ACTIF') or d.get('PASSIF') or d.get('TCR'):
+        if generate_forfait(d): n_gen += 1
+print(f'✅ {n_gen} FORFAIT générés → {FORFAIT_OUTPUT_DIR}')
