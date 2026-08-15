@@ -1,101 +1,108 @@
 # ════════════════════════════════════════════════════════════
-# CELLULE 14 — GÉNÉRATEUR FORFAIT (corrigé) | BILANS_V4
-# Fix : walrus sur attribut interdit → if classiques
+# CELLULE AUTONOME — GÉNÉRATEUR FORFAIT (sans FORFAIT_COORDS)
+# Détection dynamique des colonnes + remplissage par libellé
 # ════════════════════════════════════════════════════════════
-import shutil, re
+import re, shutil, json
 from openpyxl import load_workbook
-from openpyxl.styles import Font, PatternFill
 
-RED     = Font(color='FFFF0000', bold=True)
-REDFILL = PatternFill('solid', start_color='FFFFC7CE')
+def _norm(s): return re.sub(r'[^a-z0-9]','',str(s or '').lower())
 
 def to_kdzd(v):
     if v is None: return None
-    return round(v / 1000.0, 2)
+    return round(v/1000.0, 2)
 
-def _norm(s):
-    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
+def _clean_name(s):
+    return re.sub(r'[^A-Za-z0-9 _-]','', s or 'ENTREPRISE').strip()
 
-def find_row(ws, label_col, key, max_row=80):
-    target = _norm(key.replace('_', ' '))
-    if not target: return None
-    for r in range(1, min(ws.max_row, max_row) + 1):
-        v = ws.cell(row=r, column=label_col).value
-        if v is not None and target in _norm(v):
-            return r
+def find_row(ws, label, max_row=90, cols=(1,2,3)):
+    t=_norm(label)
+    if not t: return None
+    for r in range(1, max_row+1):
+        for c in cols:
+            v=ws.cell(row=r, column=c).value
+            if v is not None and t in _norm(v): return r
     return None
 
-def _mark(c, rouge):
-    if rouge:
-        c.font = RED
-        c.fill = REDFILL
+def detect_actif_cols(ws):
+    for r in range(1,12):
+        brut=[c for c in range(1,20) if ws.cell(row=r,column=c).value and 'montantsbruts' in _norm(ws.cell(row=r,column=c).value)]
+        if len(brut)>=2:
+            b,b1=brut[0],brut[1]
+            return dict(brut_n=b,amort_n=b+1,net_n=b+2,brut_n1=b1,amort_n1=b1+1,net_n1=b1+2)
+        if len(brut)==1:
+            b=brut[0]
+            return dict(brut_n=b,amort_n=b+1,net_n=b+2,brut_n1=b+3,amort_n1=b+4,net_n1=b+5)
+    return dict(brut_n=2,amort_n=3,net_n=4,brut_n1=5,amort_n1=6,net_n1=7)
+
+def detect_passif_cols(ws):
+    for r in range(1,8):
+        ys=[c for c in range(1,10) if ws.cell(row=r,column=c).value and re.search(r'\d{2}/\d{4}',str(ws.cell(row=r,column=c).value))]
+        if len(ys)>=2: return ys[0], ys[1]
+    return 2,3
+
+def detect_tcr_cols(ws):
+    for r in range(1,8):
+        deb=[c for c in range(1,12) if ws.cell(row=r,column=c).value and 'debit' in _norm(ws.cell(row=r,column=c).value)]
+        cred=[c for c in range(1,12) if ws.cell(row=r,column=c).value and 'credit' in _norm(ws.cell(row=r,column=c).value)]
+        if deb and cred:
+            return dict(deb_n=deb[0],cred_n=cred[0],
+                        deb_n1=deb[1] if len(deb)>1 else deb[0]+2,
+                        cred_n1=cred[1] if len(cred)>1 else cred[0]+2)
+    return dict(deb_n=3,cred_n=4,deb_n1=5,cred_n1=6)
 
 def generate_forfait(result):
     if not TEMPLATE_FORFAIT.exists():
         print(f'❌ Template introuvable : {TEMPLATE_FORFAIT}'); return None
-
-    entreprise = re.sub(r'[^A-Za-z0-9 _-]', '', result.get('entreprise') or 'ENTREPRISE').strip()
-    annee = result.get('exercice') or 'XXXX'
-    out_path = FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{entreprise}_{annee}.xlsx'
-
-    shutil.copy2(TEMPLATE_FORFAIT, out_path)
-    wb = load_workbook(out_path)
-
-    a = result.get('ACTIF')  or {}
-    p = result.get('PASSIF') or {}
-    t = result.get('TCR')    or {}
-    anoms = compute_controles(result)
-    n_written = 0
+    ent=_clean_name(result.get('entreprise')); annee=result.get('exercice') or 'XXXX'
+    out=FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{ent}_{annee}.xlsx'
+    shutil.copy2(TEMPLATE_FORFAIT, out)
+    wb=load_workbook(out)
+    a=result.get('ACTIF') or {}; p=result.get('PASSIF') or {}; t=result.get('TCR') or {}
+    n_written=0
 
     # ── ACTIF ──
-    cfg = FORFAIT_COORDS['actif']
-    if cfg['sheet'] in wb.sheetnames:
-        ws = wb[cfg['sheet']]; cn, cn1 = cfg['cols_n'], cfg['cols_n1']
-        for key, row in cfg['rows'].items():
-            rr = find_row(ws, cfg['label_col'], key) or row
-            rouge_n, rouge_n1 = f'ACTIF.{key}.n' in anoms, f'ACTIF.{key}.n1' in anoms
-            for col, val, rouge in [
-                (cn['brut'],  to_kdzd(a.get(f'{key}_brut')),  rouge_n),
-                (cn['amort'], to_kdzd(a.get(f'{key}_amort')), rouge_n),
-                (cn['net'],   to_kdzd(a.get(f'{key}_n')),     rouge_n),
-                (cn1['net'],  to_kdzd(a.get(f'{key}_n1')),    rouge_n1),
-            ]:
-                if val is not None:
-                    c = ws.cell(row=rr, column=col, value=val); n_written += 1
-                    _mark(c, rouge)
+    if 'Saisie actif' in wb.sheetnames:
+        ws=wb['Saisie actif']; cols=detect_actif_cols(ws)
+        for key,label in SCHEMAS['ACTIF']['postes'].items():
+            r=find_row(ws,label)
+            if not r: continue
+            for ca,jk in [('brut_n','_brut'),('amort_n','_amort'),('net_n','_n'),('net_n1','_n1')]:
+                v=to_kdzd(a.get(key+jk))
+                if v is not None: ws.cell(row=r,column=cols[ca],value=v); n_written+=1
 
     # ── PASSIF ──
-    cfg = FORFAIT_COORDS['passif']
-    if cfg['sheet'] in wb.sheetnames:
-        ws = wb[cfg['sheet']]
-        for key, row in cfg['rows'].items():
-            rr = find_row(ws, cfg['label_col'], key) or row
-            for col, suf in [(cfg['col_n'], 'n'), (cfg['col_n1'], 'n1')]:
-                val = to_kdzd(p.get(f'{key}_{suf}'))
-                if val is not None:
-                    c = ws.cell(row=rr, column=col, value=val); n_written += 1
-                    _mark(c, f'PASSIF.{key}.{suf}' in anoms)
+    if 'Saisie passif' in wb.sheetnames:
+        ws=wb['Saisie passif']; cn,cn1=detect_passif_cols(ws)
+        for key,label in SCHEMAS['PASSIF']['postes'].items():
+            r=find_row(ws,label)
+            if not r: continue
+            v=to_kdzd(p.get(key+'_n'))
+            if v is not None: ws.cell(row=r,column=cn,value=v); n_written+=1
+            v=to_kdzd(p.get(key+'_n1'))
+            if v is not None: ws.cell(row=r,column=cn1,value=v); n_written+=1
 
-    # ── TCR (ventilation DEBIT/CREDIT) ──
-    cfg = FORFAIT_COORDS['tcr']
-    if cfg['sheet'] in wb.sheetnames:
-        ws = wb[cfg['sheet']]; ctn, ctn1 = cfg['cols_n'], cfg['cols_n1']
-        for key, row in cfg['rows'].items():
-            rr = find_row(ws, cfg['label_col'], key) or row
-            for suf, cd, cc in [('n', ctn['debit'], ctn['credit']),
-                                ('n1', ctn1['debit'], ctn1['credit'])]:
-                d  = to_kdzd(t.get(f'{key}_debit_{suf}'))
-                cr = to_kdzd(t.get(f'{key}_credit_{suf}'))
-                rouge = f'TCR.{key}.{suf}' in anoms
-                if d is not None:
-                    c = ws.cell(row=rr, column=cd, value=d); n_written += 1
-                    _mark(c, rouge)
-                if cr is not None:
-                    c = ws.cell(row=rr, column=cc, value=cr); n_written += 1
-                    _mark(c, rouge)
+    # ── TCR ──
+    if 'Saisie TCR' in wb.sheetnames:
+        ws=wb['Saisie TCR']; cols=detect_tcr_cols(ws)
+        for key,label in SCHEMAS['TCR']['postes'].items():
+            r=find_row(ws,label,cols=(1,2))
+            if not r: continue
+            for jk,col in [('_debit_n',cols['deb_n']),('_credit_n',cols['cred_n']),
+                           ('_debit_n1',cols['deb_n1']),('_credit_n1',cols['cred_n1'])]:
+                v=to_kdzd(t.get(key+jk))
+                if v is not None: ws.cell(row=r,column=col,value=v); n_written+=1
 
-    wb.save(out_path); wb.close()
-    print(f'✅ {out_path.name} | {n_written} cellules | {len(anoms)} incohérences rouges')
-    return out_path
+    wb.save(out); wb.close()
+    print(f'✅ {out.name} | {n_written} cellules remplies')
+    return out
 
-print('✅ Générateur FORFAIT corrigé')
+# ── Boucle ──
+n_gen=0
+for jf in sorted(JSON_DIR.glob('*.json')):
+    try:
+        d=json.load(open(jf,encoding='utf-8'))
+        if not (d.get('ACTIF') or d.get('PASSIF') or d.get('TCR')): continue
+        if generate_forfait(d): n_gen+=1
+    except Exception as e:
+        print(f'❌ {jf.stem}: {e}')
+print(f'✅ {n_gen} FORFAIT .xlsx générés → {FORFAIT_OUTPUT_DIR}')
