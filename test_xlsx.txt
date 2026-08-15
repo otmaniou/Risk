@@ -1,144 +1,160 @@
-# ════════════════════════════════════════════════════════════
-# CELLULE 14 — GÉNÉRATEUR FORFAIT | calé sur PREREMPLISSAGE_BILAN.xlsx (fixe)
-# ════════════════════════════════════════════════════════════
-import shutil, re
-from openpyxl import load_workbook
 
-def to_kdzd(v):
-    return None if v is None else round(v / 1000.0, 2)
 
-def _clean(s):
-    return re.sub(r'[^A-Za-z0-9 _-]', '', s or 'ENTREPRISE').strip()
+```python
+## ═════════ ════════════════════════════════════════════════════════════════════════════════════════════════════════════
+#═══
+# CELLULE CELLULE 14 — 14 — GÉN GÉNÉRATEUR FORÉRATEUR FORFAIT (FAIT (corcorrigé Mrigé MergedCellergedCell + pass + passif)
+#if)
+# ═ ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+import re═
+import re, shutil
+, shutil
+from openpyxlfrom openpyxl.cell.cell.cell import.cell import MergedCell
 
-# Lignes (1-based) du template fixe
-ACTIF_ROWS = {
- 'ecarts_acquisition_goodwill':7,'immobilisations_incorporelles':8,
- 'terrains':10,'batiments':11,'autres_immobilisations_corporelles':12,
- 'immobilisations_en_concession':13,'immobilisations_en_cours':14,
- 'titres_mis_en_equivalence':16,'autres_participations_creances':17,
- 'autres_titres_immobilises':18,'prets_actifs_financiers_non_courants':19,
- 'impots_differes_actif':20,'total_actif_non_courant':21,
- 'stocks_encours':23,'clients':25,'autres_debiteurs':26,
- 'impots_assimiles_actif':27,'autres_creances_assimiles':28,
- 'placements_financiers_courants':30,'tresorerie_actif':31,
- 'total_actif_courant':32,'total_general_actif':33}
-ACTIF_COLS = {'brut_n':2,'amort_n':3,'net_n':4,'brut_n1':5,'amort_n1':6,'net_n1':7}
+ MergedCell
 
-PASSIF_ROWS = {
- 'capital_emis':3,'capital_non_appele':4,'primes_reserves':5,
- 'ecart_reevaluation':6,'ecart_equivalence':7,'resultat_net_passif':8,
- 'report_a_nouveau':9,'part_societe_consolidante':10,'part_minoritaires':11,
- 'total_capitaux_propres':12,'emprunts_dettes_financieres':14,
- 'impots_differes_provisionnes':15,'autres_dettes_non_courantes':16,
- 'provisions_produits_avance':17,'total_passifs_non_courants':18,
- 'fournisseurs_rattaches':20,'impots_passif':21,'autres_dettes':22,
- 'tresorerie_passif':23,'total_passifs_courants':24,'total_general_passif':25}
-PASSIF_COLS = {'n':2,'n1':3}
+def _def _norm(s):
+norm(s):
+    return re.sub    return re.sub(r'[^a(r'[^a-z0-9-z0-9]', '', str(s]', '', str(s or '').lower()) or '').lower())
 
-TCR_ROWS = {
- 'ventes_marchandises':3,'produits_fabriques':4,'prestations_services':5,
- 'ventes_travaux':6,'produits_annexes':7,'rabais_remises_ristournes_accordes':8,
- 'chiffre_affaires_net':9,'production_stockee_destockee':10,
- 'production_immobilisee':11,'subvention_exploitation':12,'production_exercice':13,
- 'achats_marchandises_vendues':14,'matieres_premieres':15,
- 'autres_approvisionnements':16,'variation_stocks':17,
- 'achats_etudes_prestations':18,'autres_consommations':19,
- 'rabais_remises_obtenus_achats':20,'sous_traitance_generale':21,
- 'locations':22,'entretien_reparations':23,'primes_assurances':24,
- 'personnel_exterieur':25,'remuneration_intermediaires':26,'publicite':27,
- 'deplacements_missions':28,'autres_services':29,
- 'rabais_remises_obtenus_services':30,'consommations_exercice':31,
- 'valeur_ajoutee_exploitation':32,'charges_personnel':33,
- 'impots_taxes_assimiles':34,'excedent_brut_exploitation':35,
- 'autres_produits_operationnels':36,'autres_charges_operationnelles':37,
- 'dotations_amortissements':38,'provisions':39,'pertes_valeur':40,
- 'reprises_pertes_valeur_provisions':41,'resultat_operationnel':42,
- 'produits_financiers':43,'charges_financieres':44,'resultat_financier':45,
- 'resultat_ordinaire':46,'elements_extraordinaires_produits':47,
- 'elements_extraordinaires_charges':48,'resultat_extraordinaire':49,
- 'impots_exigibles_resultats':50,'impots_differes_resultats':51,
- 'resultat_net_exercice':52}
-TCR_COLS = {'deb_n':3,'cred_n':4,'deb_n1':5,'cred_n1':6}
+def safe
 
-TCR_CREDIT = {'ventes_marchandises','produits_fabriques','prestations_services','ventes_travaux','produits_annexes','chiffre_affaires_net','production_stockee_destockee','production_immobilisee','subvention_exploitation','production_exercice','rabais_remises_obtenus_achats','rabais_remises_obtenus_services','valeur_ajoutee_exploitation','excedent_brut_exploitation','autres_produits_operationnels','reprises_pertes_valeur_provisions','produits_financiers','elements_extraordinaires_produits'}
-TCR_DEBIT = {'rabais_remises_ristournes_accordes','achats_marchandises_vendues','matieres_premieres','autres_approvisionnements','variation_stocks','achats_etudes_prestations','autres_consommations','sous_traitance_generale','locations','entretien_reparations','primes_assurances','personnel_exterieur','remuneration_intermediaires','publicite','deplacements_missions','autres_services','consommations_exercice','charges_personnel','impots_taxes_assimiles','autres_charges_operationnelles','dotations_amortissements','provisions','pertes_valeur','charges_financieres','elements_extraordinaires_charges','impots_exigibles_resultats','impots_differes_resultats'}
+def safe_write(ws, row_write(ws, row, col, value, col, value):
+    """):
+    """ÉcritÉcrit en g en gérant lesérant les cellules fusionnées ( cellules fusionnées (écécrit aurit au haut-gauche haut-gauche de de la plage la plage).""")."""
+    if value
+    if value is None:
+ is None:
+        return 0        return 0
+    for
+    for mr in list(ws mr in list(ws.merged_cells.r.merged_cells.ranges):
+       anges):
+        if (mr.min if (mr.min_row <= row <=_row <= row <= mr.max_row) mr.max_row) and (mr.min and (mr.min_col <= col <=_col <= col <= mr.max_col): mr.max_col):
+            ws.cell
+            ws.cell(row=mr.min(row=mr.min_row, column=_row, column=mr.min_col).mr.min_col).value = value
+value = value
+            return 1            return 1
+    ws
+    ws.cell(row=row,.cell(row=row, column=col). column=col).value = value
+value = value
+    return    return 1
 
-def generate_forfait(result):
-    if not TEMPLATE_FORFAIT.exists():
-        print(f'❌ Template introuvable : {TEMPLATE_FORFAIT}'); return None
-    out = FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{_clean(result.get("entreprise"))}_{result.get("exercice") or "XXXX"}.xlsx'
-    shutil.copy2(TEMPLATE_FORFAIT, out)
-    wb = load_workbook(out)
-    a, p, t = result.get('ACTIF') or {}, result.get('PASSIF') or {}, result.get('TCR') or {}
-    n_wr = 0
+def 1
 
-    # ACTIF
-    ws = wb['Saisie actif']
-    ws.cell(row=2, column=2, value='Fiscal')
-    if result.get('exercice'):
-        ws.cell(row=4, column=2, value=result['exercice'])
-    for key, row in ACTIF_ROWS.items():
-        for colkey, col in ACTIF_COLS.items():
-            v = to_kdzd(a.get(f'{key}_{colkey}'))
-            if v is not None: ws.cell(row=row, column=col, value=v); n_wr += 1
+def to_kdzd to_kdzd(v):
+   (v):
+    return None if v return None if v is None else is None else round(v /  round(v / 10001000.0, .0, 2)
 
-    # PASSIF
-    ws = wb['Saisie passif']
-    for key, row in PASSIF_ROWS.items():
-        for colkey, col in PASSIF_COLS.items():
-            v = to_kdzd(p.get(f'{key}_{colkey}'))
-            if v is not None: ws.cell(row=row, column=col, value=v); n_wr += 1
+#2)
 
-    # TCR (ventilation DEBIT/CREDIT)
-    ws = wb['Saisie TCR']
-    for key, row in TCR_ROWS.items():
-        for suf, cd, cc in [('n', TCR_COLS['deb_n'], TCR_COLS['cred_n']),
-                            ('n1', TCR_COLS['deb_n1'], TCR_COLS['cred_n1'])]:
-            v = t.get(f'{key}_{suf}')
-            if v is None: continue
-            av = round(abs(v), 2)
-            if key in TCR_CREDIT:
-                ws.cell(row=row, column=cc if v >= 0 else cd, value=av)
-            elif key in TCR_DEBIT:
-                ws.cell(row=row, column=cd if v >= 0 else cc, value=av)
-            else:  # résultat variable
-                ws.cell(row=row, column=cc if v >= 0 else cd, value=av)
-            n_wr += 1
+# Colon Colonnes ACTnes ACTIF (IF (dédéjà OKjà OK) : N brut) : N brut=7 amort=7 amort=8 net=8 net=9 ;=9 ; N-1 brut N-1 brut=10 amort=10 amort=11 net=11 net=12
+=12
+ACTIFACTIF_COLS = {'_COLS = {'brut_n':brut_n':7, 'am7, 'amort_n':8ort_n':8, 'net_n, 'net_n':9, '':9, 'brut_n1brut_n1':10,':10, 'amort_n 'amort_n1':111':11, 'net_n, 'net_n1':121':12}
 
-    wb.save(out); wb.close()
-    print(f'✅ {out.name} | {n_wr} cellules')
+# Colon}
+
+# Colonnesnes PASSIF corrig PASSIF corrigées : N =ées : N = E( E(5),5), N-1 = N-1 = F(6) F(6)
+PASSIF_COLS
+PASSIF_COLS = {'n': = {'n':5, '5, 'n1':6n1':6}
+
+# Colon}
+
+# Colonnes TCR (nes TCR (déjà OK)déjà OK) : DE : DEBIT N=6BIT N=6, CREDIT N, CREDIT N=7, DE=7, DEBIT N-1BIT N-1=8, C=8, CREDIT N-1REDIT N-1=9=9
+TC
+TCR_COLS = {'R_COLS = {'debit_n':6debit_n':6, 'credit_n, 'credit_n':7, '':7, 'debit_n1':debit_n1':8, 'credit8, 'credit_n1':9_n1':9}
+
+def generate}
+
+def generate_forfait_forfait(result):
+   (result):
+    if not TEMPLATE_FOR if not TEMPLATE_FORFAIT.exists():FAIT.exists():
+        print(f
+        print(f'❌ Template'❌ Template introuvable : introuvable : {TEMPLATE_FORFA {TEMPLATE_FORFAIT}'); returnIT}'); return None
+    ent None
+    ent = re = re.sub(r'[^.sub(r'[^A-Za-z0A-Za-z0-9 _-9 _-]', '', result-]', '', result.get('entreprise').get('entreprise') or 'ENTRE or 'ENTREPRISE').stripPRISE').strip()
+    an()
+    annee = result.getnee = result.get('exercice') or('exercice') or 'XXXX'
+ 'XXXX'
+    out = FOR    out = FORFAIT_OUTPUT_DIRFAIT_OUTPUT_DIR / f'FOR / f'FORFAIT Cas FAIT Cas 1_{ent}_{1_{ent}_{annee}.xlsxannee}.xlsx'
+    shutil'
+    shutil.copy2.copy2(TEMPLATE_FORFA(TEMPLATE_FORFAIT, out)IT, out)
+    wb
+    wb = load_workbook = load_workbook(out)
+   (out)
+    a, a, p, p, t = result.get t = result.get('ACTIF')('ACTIF') or {}, result or {}, result.get('PASSIF.get('PASSIF') or {}, result') or {}, result.get('TCR.get('TCR') or {}
+') or {}
+    n_wr    n_wr = 0
+
+ = 0
+
+    # ─    # ── ACTIF ──
+   ─ ACTIF ──
+    if ' if 'Saisie actifSaisie actif' in wb.sheet' in wb.sheetnames:
+       names:
+        ws = wb ws = wb['Saisie['Saisie actif']
+        actif']
+        safe_write(ws, safe_write(ws, 2,  2, 7, '7, 'Fiscal')                     Fiscal')                      # Nature # Nature bilan
+ bilan
+        if result        if result.get('exercice'):.get('exercice'):
+            safe
+            safe_write(ws, _write(ws, 4, 74, 7, result, result['exercice'])['exercice'])        # Date        # Date N
+ N
+        for        for key, row in key, row in ACTIF_ROWS.items():
+ ACTIF_ROWS.items():
+            for colkey            for colkey, col in ACT, col in ACTIF_COLS.items():IF_COLS.items():
+               
+                src = f src = f'{key}_{'{key}_{colkeycolkey}'
+}'
+                n                n_wr += safe_wr += safe_write(ws, row_write(ws, row, col, to, col, to_kdzd(a_kdzd(a.get(src))).get(src)))
+
+    # ── PASSIF
+
+    # ── PASSIF (colonnes corrig (colonnes corrigées)ées) ──
+ ──
+    if 'S    if 'Saisie passifaisie passif' in wb.sheet' in wb.sheetnames:
+       names:
+        ws = wb[' ws = wb['Saisie passSaisie passif']
+       if']
+        for key, row for key, row in PASSIF_ROWS in PASSIF_ROWS.items():
+           .items():
+            n_wr += safe n_wr += safe_write(ws, row_write(ws, row, PASSIF_COLS, PASSIF_COLS['n'], ['n'],  to_kdzd to_kdzd(p.get(f'{(p.get(f'{key}_n')))key}_n')))
+           
+            n_wr += safe n_wr += safe_write(ws, row_write(ws, row, PASSIF_COLS, PASSIF_COLS['n1'],['n1'], to_kdzd to_kdzd(p.get(f'{(p.get(f'{key}_n1key}_n1')))
+
+    #')))
+
+    # ── T ── TCR ──CR ──
+    if '
+    if 'Saisie TSaisie TCR' in wbCR' in wb.sheetnames:
+.sheetnames:
+        ws = wb        ws = wb['Saisie['Saisie TCR'] TCR']
+        for key
+        for key, row in T, row in TCR_ROWS.items():CR_ROWS.items():
+            for col
+            for colkey, colkey, col in TCR_COLS in TCR_COLS.items():
+.items():
+                n_wr +=                n_wr += safe_write(ws, safe_write(ws, row, col, row, col, to_kdzd to_kdzd(t.get(f(t.get(f'{key}_{col'{key}_{colkey}')))key}')))
+
+    wb
+
+    wb.save(out);.save(out); wb.close()
+ wb.close()
+    print(f'    print(f'✅ {✅ {out.name} |out.name} | {n_wr} {n_wr} cellules') cellules')
+    return out
     return out
 
+# ─
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-json_files = sorted(JSON_DIR.glob('*.json'))
-n_gen = 0
-for jf in json_files:
-    d = json.load(open(jf, encoding='utf-8'))
-    if d.get('ACTIF') or d.get('PASSIF') or d.get('TCR'):
-        if generate_forfait(d): n_gen += 1
-print(f'✅ {n_gen} FORFAIT générés → {FORFAIT_OUTPUT_DIR}')
-
-
-
-
-
-
-
-wb = load_workbook(FORFAIT_OUTPUT_DIR / sorted(FORFAIT_OUTPUT_DIR.glob('*.xlsx'))[0].name)
-ws = wb['Saisie actif'];  print('ACTIF  L33 (TOTAL GENERAL) :', [ws.cell(row=33, column=c).value for c in (2,3,4,5,6,7)])
-ws = wb['Saisie passif']; print('PASSIF L25 (TOTAL PASSIF) :', [ws.cell(row=25, column=c).value for c in (2,3)])
-ws = wb['Saisie TCR'];    print('TCR L9 (CA net) :', [ws.cell(row=9, column=c).value for c in (3,4,5,6)])
-
+# ── Exécution ──
+n─ Exécution ──
+n_gen = 0_gen = 0
+for jf
+for jf in sorted(JSON in sorted(JSON_DIR.glob('*._DIR.glob('*.json')):
+json')):
+    d = json    d = json.load(open(jf.load(open(jf, encoding='utf, encoding='utf-8'))
+-8'))
+    if d.get    if d.get('ACTIF')('ACTIF') or d.get(' or d.get('PASSIF') orPASSIF') or d.get('TC d.get('TCR'):
+       R'):
+        if generate_forfait if generate_forfait(d): n(d): n_gen += 1_gen += 1
+print(f'
+print(f'✅ {n_gen✅ {n_gen} FORFAIT} FORFAIT générés → { générés → {FORFAIT_OUTPUTFORFAIT_OUTPUT_DIR}')_DIR}')
