@@ -1,42 +1,14 @@
 # ════════════════════════════════════════════════════════════
-# CELLULE 6bis — HOTFIX | BILANS_V8BIS
-# Objectif: restaurer model.generate(**inputs) comme dans v8.
+# CELLULE 4bis — LOG AVEC FLUSH
+# Objectif: afficher immédiatement la progression dans Jupyter.
 # ════════════════════════════════════════════════════════════
-def ask_single(prompt, image):
-    msgs = [{'role':'user','content':[{'type':'image','image':image},{'type':'text','text':prompt}]}]
-    inputs = processor(text=[apply_template(msgs)], images=[image], return_tensors='pt').to(DEVICE)
-    t0 = time.time()
-    with torch.no_grad():
-        out = model.generate(**inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False,
-                             repetition_penalty=1.0, pad_token_id=processor.tokenizer.eos_token_id)
-    torch.cuda.synchronize()
-    return {'text': _decode(out[0], inputs['input_ids'].shape[1]),
-            'tokens_in': int(inputs['input_ids'].shape[1]),
-            'tokens_out': int(out[0].shape[0] - inputs['input_ids'].shape[1]),
-            'elapsed': round(time.time()-t0, 2)}
+def log(msg):
+    ligne = datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' — ' + str(msg)
+    print(ligne, flush=True)
+    with open(LOG_PATH, 'a', encoding='utf-8') as f:
+        f.write(ligne + chr(10))
 
-def ask_batch(prompt, images):
-    if not images:
-        return []
-    if len(images) == 1:
-        return [ask_single(prompt, images[0])]
-    msgs = [[{'role':'user','content':[{'type':'image','image':img},{'type':'text','text':prompt}]}] for img in images]
-    inputs = processor(text=[apply_template(m) for m in msgs], images=images,
-                       return_tensors='pt', padding=True).to(DEVICE)
-    t0 = time.time()
-    with torch.no_grad():
-        out = model.generate(**inputs, max_new_tokens=MAX_NEW_TOKENS, do_sample=False,
-                             repetition_penalty=1.0, pad_token_id=processor.tokenizer.eos_token_id)
-    torch.cuda.synchronize()
-    el = time.time() - t0
-    in_len = inputs['input_ids'].shape[1]
-    attn = inputs.get('attention_mask')
-    return [{'text': _decode(out[i], in_len),
-             'tokens_in': int(attn[i].sum().item()) if attn is not None else in_len,
-             'tokens_out': int(out[i].shape[0] - in_len),
-             'elapsed': round(el/len(images), 2)} for i in range(len(images))]
-
-print('✅ Hotfix generate(**inputs) OK')
+print('✅ Log avec flush OK')
 
 
 
@@ -46,15 +18,187 @@ print('✅ Hotfix generate(**inputs) OK')
 
 
 
+# ════════════════════════════════════════════════════════════
+# CELLULE 10bis — PIPELINE PRINCIPAL AVEC PROGRESSION
+# Objectif: exécuter le pipeline PDF vers JSON en affichant
+# la progression détaillée page/batch.
+# ════════════════════════════════════════════════════════════
+deja = {f.stem for f in JSON_DIR.glob('*.json')}
+a_traiter = [p for p in pdfs if p.stem not in deja]
 
+log('A traiter: ' + str(len(a_traiter)) + ' | deja traites: ' + str(len(deja)))
 
+t_total = time.time()
+n_ok = 0
+n_err = 0
+index_records = []
 
+for num, pdf_path in enumerate(a_traiter, start=1):
+    prefix = '[' + str(num).zfill(4) + '/' + str(len(a_traiter)) + '] '
+    t_pdf = time.time()
 
+    log(prefix + 'DEMARRAGE ' + pdf_path.name)
+
+    try:
+        # ── Rendu PDF ───────────────────────────────────────
+        t0 = time.time()
+        pages = pdf_to_pages(pdf_path)
+        log(prefix + 'rendu termine: ' + str(len(pages)) + ' pages en ' + str(round(time.time() - t0, 1)) + 's')
+
+        # ── Pages blanches / actives ───────────────────────
+        page_objects = []
+        active_pages = []
+
+        for p in pages:
+            if is_blank(p['image']):
+                page_objects.append(build_blank_page(p, pdf_path.name))
+            else:
+                active_pages.append(p)
+
+        log(prefix + 'pages blanches: ' + str(len(page_objects)) +
+            ' | pages actives: ' + str(len(active_pages)))
+
+        tok_in = 0
+        tok_out = 0
+
+        if active_pages:
+            # ── Classification ─────────────────────────────
+            t0 = time.time()
+            mini = [resize(p['image'], 600) for p in active_pages]
+            reps1 = []
+
+            nb_classif_batches = (len(mini) + CLASSIF_BATCH_SIZE - 1) // CLASSIF_BATCH_SIZE
+            classif_batch_no = 0
+
+            for bs in chunks(mini, CLASSIF_BATCH_SIZE):
+                classif_batch_no += 1
+                reps_batch = ask_batch(PROMPT_CLASSIF, bs)
+                reps1 += reps_batch
+                log(prefix + 'classification batch ' +
+                    str(classif_batch_no) + '/' + str(nb_classif_batches) +
+                    ' (' + str(len(bs)) + ' pages) en ' +
+                    str(round(time.time() - t0, 1)) + 's')
+
+            tok_in += sum(r['tokens_in'] for r in reps1)
+            tok_out += sum(r['tokens_out'] for r in reps1)
+
+            pages_typed = []
+            type_counts = {}
+
+            for p, rep in zip(active_pages, reps1):
+                t = parse_type(rep['text'])
+                pages_typed.append((p, t))
+                type_counts[t] = type_counts.get(t, 0) + 1
+
+            log(prefix + 'types detectes: ' +
+                ', '.join([str(k) + '=' + str(v) for k, v in sorted(type_counts.items())]))
+
+            del mini, reps1
+            gc.collect()
+
+            # ── Groupes par type ───────────────────────────
+            groups = {}
+            for p, t in pages_typed:
+                groups.setdefault(t, []).append(p)
+
+            extracted = {}
+
+            # ── Extraction détaillée ───────────────────────
+            for t, plist in groups.items():
+                prompt = EXTRACTION_PROMPTS.get(t, PROMPT_AUTRE)
+                nb_batches = (len(plist) + GPU_BATCH_SIZE - 1) // GPU_BATCH_SIZE
+                batch_no = 0
+
+                for batch in chunks(plist, GPU_BATCH_SIZE):
+                    batch_no += 1
+                    page_nums = [str(p['index'] + 1) for p in batch]
+
+                    log(prefix + 'extraction ' + t +
+                        ' batch ' + str(batch_no) + '/' + str(nb_batches) +
+                        ' pages [' + ','.join(page_nums) + ']')
+
+                    t0 = time.time()
+                    reps = ask_batch(prompt, [p['image'] for p in batch])
+
+                    for p, rep in zip(batch, reps):
+                        tok_in += rep['tokens_in']
+                        tok_out += rep['tokens_out']
+                        data = parse_json(rep['text'])
+                        extracted[p['index']] = build_page_object(p, t, data, rep, pdf_path.name)
+
+                    log(prefix + 'extraction ' + t +
+                        ' batch ' + str(batch_no) +
+                        ' terminee en ' + str(round(time.time() - t0, 1)) +
+                        's | tokens=' + str(sum(r['tokens_in'] + r['tokens_out'] for r in reps)))
+
+                    gc.collect()
+                    torch.cuda.empty_cache()
+
+            # ── Recuperation des pages actives ─────────────
+            for p in active_pages:
+                if p['index'] in extracted:
+                    page_objects.append(extracted[p['index']])
+                else:
+                    page_objects.append(build_page_object(p, 'AUTRE', {}, None, pdf_path.name))
+
+        # ── Construction JSON ──────────────────────────────
+        page_objects.sort(key=lambda x: x['pdf_page_index'])
+        elapsed = time.time() - t_pdf
+
+        result = build_document(
+            pdf_path=pdf_path,
+            pages=pages,
+            page_objects=page_objects,
+            tok_in=tok_in,
+            tok_out=tok_out,
+            elapsed=elapsed
+        )
+
+        json_path = JSON_DIR / (pdf_path.stem + '.json')
+
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2, default=str)
+
+        n_ok += 1
+
+        index_records.append({
+            'fichier': pdf_path.name,
+            'json_path': str(json_path),
+            'nb_pages': len(pages),
+            'nb_pages_utiles': result['document']['nb_pages_utiles'],
+            'nb_pages_blanches': result['document']['nb_pages_blanches'],
+            'nb_pages_annexes': result['document']['nb_pages_annexes'],
+            'tokens_total': tok_in + tok_out,
+            'duree_s': round(elapsed, 2),
+            'date_extraction': result['document']['date_extraction']
+        })
+
+        eta = (time.time() - t_total) / num * (len(a_traiter) - num)
+
+        log(prefix + 'OK ' + pdf_path.name +
+            ' | ' + str(round(elapsed, 1)) + 's' +
+            ' | tok=' + str(tok_in + tok_out) +
+            ' | pages=' + str(len(pages)) +
+            ' | utiles=' + str(result['document']['nb_pages_utiles']) +
+            ' | blanches=' + str(result['document']['nb_pages_blanches']) +
+            ' | annexes=' + str(result['document']['nb_pages_annexes']) +
+            ' | ETA ' + str(round(eta / 3600, 2)) + 'h')
 
     except Exception as e:
         n_err += 1
-        import traceback as _tb
-        log('[' + str(num).zfill(4) + '/' + str(len(a_traiter)) + '] ERREUR ' + pdf_path.name + ' — ' + type(e).__name__ + ': ' + (str(e) or '(message vide)'))
+        import traceback
+        log(prefix + 'ERREUR ' + pdf_path.name + ' — ' + type(e).__name__ + ': ' + str(e))
         with open(LOG_PATH, 'a', encoding='utf-8') as f:
-            f.write(_tb.format_exc() + chr(10))
+            f.write(traceback.format_exc() + chr(10))
         continue
+
+# ── Index JSONL ─────────────────────────────────────────────
+with open(INDEX_PATH, 'w', encoding='utf-8') as f:
+    for rec in index_records:
+        f.write(json.dumps(rec, ensure_ascii=False) + chr(10))
+
+log('✅ Termine en ' + str(round(time.time() - t_total, 1)) +
+    's | OK ' + str(n_ok) +
+    ' | Erreurs ' + str(n_err))
+
+log('Index JSON: ' + str(INDEX_PATH))
