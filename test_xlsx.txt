@@ -1,83 +1,101 @@
 # ════════════════════════════════════════════════════════════
-# CELLULE 9 — EXPORT EXCEL | BILANS_V9 | 2026-08-15 (CORRECTIF)
-# Correctif : val_for TCR renvoie un SCALAIRE (plus de tuple)
+# CELLULE 14 — GÉNÉRATEUR FORFAIT (corrigé) | BILANS_V4
+# Fix : walrus sur attribut interdit → if classiques
 # ════════════════════════════════════════════════════════════
-COLORS = {'META':'FFD6E4F0', 'ACTIF':'FFE2EFDA', 'PASSIF':'FFDAE3F3', 'TCR':'FFFCE4D6', 'DECL':'FFE4DFEC'}
-HDRS   = {'META':'FF1F4E79', 'ACTIF':'FF375623', 'PASSIF':'FF203864', 'TCR':'FF833C00', 'DECL':'FF4B2D73'}
-TOT_ACT = ['total_actif_non_courant','total_actif_courant','total_general_actif']
+import shutil, re
+from openpyxl import load_workbook
+from openpyxl.styles import Font, PatternFill
 
-def build_cols():
-    cols = [('META', k, lab) for k, lab in [
-        ('fichier','Fichier'), ('entreprise','Entreprise'), ('nif','NIF'),
-        ('exercice','Exercice'), ('annee_exercice','Année exercice'),
-        ('annee_depot','Année dépôt'), ('date_traitement','Date traitement'),
-        ('temps_total_s','Temps (s)'), ('tokens_in','Tokens IN'),
-        ('tokens_out','Tokens OUT'), ('tokens_total','Tokens total'),
-        ('pages_trouvees','Tableaux trouvés'), ('anomalies','Anomalies')]]
-    for key in SCHEMAS['ACTIF']['postes']: cols.append(('ACTIF', key, key))
-    for key in TOT_ACT:
-        cols.append(('ACTIF', key+'_brut', key+' [brut]'))
-        cols.append(('ACTIF', key+'_amort', key+' [amort]'))
-    for key in SCHEMAS['PASSIF']['postes']: cols.append(('PASSIF', key, key))
-    for key in SCHEMAS['TCR']['postes']: cols.append(('TCR', key, key))
-    for key in SCHEMAS['DECL']['postes']: cols.append(('DECL', key, key))
-    return cols
+RED     = Font(color='FFFF0000', bold=True)
+REDFILL = PatternFill('solid', start_color='FFFFC7CE')
 
-def val_for(d, groupe, key, suf):
-    """Valeur Excel : suf='n' (ligne N) ou 'n1' (ligne N-1)."""
-    if groupe == 'DECL':
-        return (d.get('DECL') or {}).get(key)
-    t = d.get(groupe) or {}
-    if groupe == 'ACTIF' and (key.endswith('_brut') or key.endswith('_amort')):
-        return t.get(key) if suf == 'n' else None
-    if groupe == 'TCR':
-        # ✅ CORRECTIF : scalaire — côté DEBIT s'il existe, sinon côté CREDIT
-        # (reproduit l'affichage de la liasse : la valeur telle qu'imprimée)
-        deb  = t.get(f'{key}_debit_{suf}')
-        cred = t.get(f'{key}_credit_{suf}')
-        return deb if deb is not None else cred
-    return t.get(f'{key}_{suf}')
+def to_kdzd(v):
+    if v is None: return None
+    return round(v / 1000.0, 2)
 
-def create_excel(path, rows):
-    all_cols = build_cols()
-    wb = Workbook(); ws = wb.active; ws.title = 'Bilans'
-    grp = defaultdict(list); idx = 1
-    for g, _, _ in all_cols: grp[g].append(idx); idx += 1
-    for g, cs in grp.items():
-        s, e = cs[0], cs[-1]
-        if s < e: ws.merge_cells(start_row=1, start_column=s, end_row=1, end_column=e)
-        c = ws.cell(row=1, column=s); c.value = g
-        c.font = Font(bold=True, color='FFFFFFFF', name='Arial', size=11)
-        c.fill = PatternFill('solid', start_color=HDRS[g])
-        c.alignment = Alignment(horizontal='center', vertical='center')
-    for i, (g, _, label) in enumerate(all_cols, start=1):
-        c = ws.cell(row=2, column=i); c.value = label
-        c.font = Font(bold=True, name='Arial', size=8)
-        c.fill = PatternFill('solid', start_color=COLORS[g])
-        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-        ws.column_dimensions[get_column_letter(i)].width = 16
-    ws.row_dimensions[2].height = 30
-    ws.freeze_panes = ws.cell(row=3, column=7)
-    rn = 3
-    for d in rows:
-        annee_n = norm_str(d.get('exercice'))
-        annee_n1 = str(int(annee_n)-1) if annee_n and annee_n.isdigit() else None
-        for exer, annee, suf in [('N', annee_n, 'n'), ('N-1', annee_n1, 'n1')]:
-            for ci, (g, key, _) in enumerate(all_cols, start=1):
-                if g == 'META':
-                    if key == 'exercice': val = exer
-                    elif key == 'annee_exercice': val = annee
-                    else: val = d.get(key)
-                else:
-                    val = val_for(d, g, key, suf)
-                c = ws.cell(row=rn, column=ci); c.value = val   # ✅ plus de tuple
-                c.font = Font(name='Arial', size=9)
-                c.fill = PatternFill('solid', start_color=COLORS[g])
-                if isinstance(val, float): c.number_format = '#,##0.00'
-                if g == 'META' and key == 'anomalies' and val:
-                    c.font = Font(name='Arial', size=9, bold=True, color='FFCC0000')
-            rn += 1
-    wb.save(path)
-    print(f'✅ Excel : {path} | {len(rows)} bilans → {rn-3} lignes | {len(all_cols)} colonnes')
+def _norm(s):
+    return re.sub(r'[^a-z0-9]', '', str(s or '').lower())
 
-print('✅ Export Excel OK (correctif tuple TCR appliqué)')
+def find_row(ws, label_col, key, max_row=80):
+    target = _norm(key.replace('_', ' '))
+    if not target: return None
+    for r in range(1, min(ws.max_row, max_row) + 1):
+        v = ws.cell(row=r, column=label_col).value
+        if v is not None and target in _norm(v):
+            return r
+    return None
+
+def _mark(c, rouge):
+    if rouge:
+        c.font = RED
+        c.fill = REDFILL
+
+def generate_forfait(result):
+    if not TEMPLATE_FORFAIT.exists():
+        print(f'❌ Template introuvable : {TEMPLATE_FORFAIT}'); return None
+
+    entreprise = re.sub(r'[^A-Za-z0-9 _-]', '', result.get('entreprise') or 'ENTREPRISE').strip()
+    annee = result.get('exercice') or 'XXXX'
+    out_path = FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{entreprise}_{annee}.xlsx'
+
+    shutil.copy2(TEMPLATE_FORFAIT, out_path)
+    wb = load_workbook(out_path)
+
+    a = result.get('ACTIF')  or {}
+    p = result.get('PASSIF') or {}
+    t = result.get('TCR')    or {}
+    anoms = compute_controles(result)
+    n_written = 0
+
+    # ── ACTIF ──
+    cfg = FORFAIT_COORDS['actif']
+    if cfg['sheet'] in wb.sheetnames:
+        ws = wb[cfg['sheet']]; cn, cn1 = cfg['cols_n'], cfg['cols_n1']
+        for key, row in cfg['rows'].items():
+            rr = find_row(ws, cfg['label_col'], key) or row
+            rouge_n, rouge_n1 = f'ACTIF.{key}.n' in anoms, f'ACTIF.{key}.n1' in anoms
+            for col, val, rouge in [
+                (cn['brut'],  to_kdzd(a.get(f'{key}_brut')),  rouge_n),
+                (cn['amort'], to_kdzd(a.get(f'{key}_amort')), rouge_n),
+                (cn['net'],   to_kdzd(a.get(f'{key}_n')),     rouge_n),
+                (cn1['net'],  to_kdzd(a.get(f'{key}_n1')),    rouge_n1),
+            ]:
+                if val is not None:
+                    c = ws.cell(row=rr, column=col, value=val); n_written += 1
+                    _mark(c, rouge)
+
+    # ── PASSIF ──
+    cfg = FORFAIT_COORDS['passif']
+    if cfg['sheet'] in wb.sheetnames:
+        ws = wb[cfg['sheet']]
+        for key, row in cfg['rows'].items():
+            rr = find_row(ws, cfg['label_col'], key) or row
+            for col, suf in [(cfg['col_n'], 'n'), (cfg['col_n1'], 'n1')]:
+                val = to_kdzd(p.get(f'{key}_{suf}'))
+                if val is not None:
+                    c = ws.cell(row=rr, column=col, value=val); n_written += 1
+                    _mark(c, f'PASSIF.{key}.{suf}' in anoms)
+
+    # ── TCR (ventilation DEBIT/CREDIT) ──
+    cfg = FORFAIT_COORDS['tcr']
+    if cfg['sheet'] in wb.sheetnames:
+        ws = wb[cfg['sheet']]; ctn, ctn1 = cfg['cols_n'], cfg['cols_n1']
+        for key, row in cfg['rows'].items():
+            rr = find_row(ws, cfg['label_col'], key) or row
+            for suf, cd, cc in [('n', ctn['debit'], ctn['credit']),
+                                ('n1', ctn1['debit'], ctn1['credit'])]:
+                d  = to_kdzd(t.get(f'{key}_debit_{suf}'))
+                cr = to_kdzd(t.get(f'{key}_credit_{suf}'))
+                rouge = f'TCR.{key}.{suf}' in anoms
+                if d is not None:
+                    c = ws.cell(row=rr, column=cd, value=d); n_written += 1
+                    _mark(c, rouge)
+                if cr is not None:
+                    c = ws.cell(row=rr, column=cc, value=cr); n_written += 1
+                    _mark(c, rouge)
+
+    wb.save(out_path); wb.close()
+    print(f'✅ {out_path.name} | {n_written} cellules | {len(anoms)} incohérences rouges')
+    return out_path
+
+print('✅ Générateur FORFAIT corrigé')
