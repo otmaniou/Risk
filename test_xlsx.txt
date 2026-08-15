@@ -1,571 +1,83 @@
 # ════════════════════════════════════════════════════════════
-# DIAGNOSTIC FORFAIT - Identifier le problème
+# CELLULE 9 — EXPORT EXCEL | BILANS_V9 | 2026-08-15 (CORRECTIF)
+# Correctif : val_for TCR renvoie un SCALAIRE (plus de tuple)
 # ════════════════════════════════════════════════════════════
-from pathlib import Path
+COLORS = {'META':'FFD6E4F0', 'ACTIF':'FFE2EFDA', 'PASSIF':'FFDAE3F3', 'TCR':'FFFCE4D6', 'DECL':'FFE4DFEC'}
+HDRS   = {'META':'FF1F4E79', 'ACTIF':'FF375623', 'PASSIF':'FF203864', 'TCR':'FF833C00', 'DECL':'FF4B2D73'}
+TOT_ACT = ['total_actif_non_courant','total_actif_courant','total_general_actif']
 
-# 1. Vérifier le template
-TEMPLATE_FORFAIT = Path('/mnt/data/forfait/FORFAIT Cas 1 TARZAALI.xlsx')  # ← AJUSTER LE CHEMIN
+def build_cols():
+    cols = [('META', k, lab) for k, lab in [
+        ('fichier','Fichier'), ('entreprise','Entreprise'), ('nif','NIF'),
+        ('exercice','Exercice'), ('annee_exercice','Année exercice'),
+        ('annee_depot','Année dépôt'), ('date_traitement','Date traitement'),
+        ('temps_total_s','Temps (s)'), ('tokens_in','Tokens IN'),
+        ('tokens_out','Tokens OUT'), ('tokens_total','Tokens total'),
+        ('pages_trouvees','Tableaux trouvés'), ('anomalies','Anomalies')]]
+    for key in SCHEMAS['ACTIF']['postes']: cols.append(('ACTIF', key, key))
+    for key in TOT_ACT:
+        cols.append(('ACTIF', key+'_brut', key+' [brut]'))
+        cols.append(('ACTIF', key+'_amort', key+' [amort]'))
+    for key in SCHEMAS['PASSIF']['postes']: cols.append(('PASSIF', key, key))
+    for key in SCHEMAS['TCR']['postes']: cols.append(('TCR', key, key))
+    for key in SCHEMAS['DECL']['postes']: cols.append(('DECL', key, key))
+    return cols
 
-print("=" * 60)
-print("1. VÉRIFICATION DU TEMPLATE")
-print("=" * 60)
-print(f"Chemin configuré : {TEMPLATE_FORFAIT}")
-print(f"Existe : {TEMPLATE_FORFAIT.exists()}")
-print(f"Extension : {TEMPLATE_FORFAIT.suffix}")
+def val_for(d, groupe, key, suf):
+    """Valeur Excel : suf='n' (ligne N) ou 'n1' (ligne N-1)."""
+    if groupe == 'DECL':
+        return (d.get('DECL') or {}).get(key)
+    t = d.get(groupe) or {}
+    if groupe == 'ACTIF' and (key.endswith('_brut') or key.endswith('_amort')):
+        return t.get(key) if suf == 'n' else None
+    if groupe == 'TCR':
+        # ✅ CORRECTIF : scalaire — côté DEBIT s'il existe, sinon côté CREDIT
+        # (reproduit l'affichage de la liasse : la valeur telle qu'imprimée)
+        deb  = t.get(f'{key}_debit_{suf}')
+        cred = t.get(f'{key}_credit_{suf}')
+        return deb if deb is not None else cred
+    return t.get(f'{key}_{suf}')
 
-if TEMPLATE_FORFAIT.exists():
-    print(f"Taille : {TEMPLATE_FORFAIT.stat().st_size / 1024:.1f} KB")
-    
-    if TEMPLATE_FORFAIT.suffix == '.xls':
-        print("❌ PROBLÈME : template en .xls — openpyxl ne peut PAS le lire !")
-        print("   → Convertir en .xlsx avec LibreOffice ou Excel")
-    else:
-        # Essayer d'ouvrir avec openpyxl
-        try:
-            from openpyxl import load_workbook
-            wb = load_workbook(TEMPLATE_FORFAIT)
-            print(f"✅ Ouverture OK")
-            print(f"Feuilles : {wb.sheetnames}")
-            
-            # Vérifier les feuilles attendues
-            feuilles_attendues = ['Saisie actif', 'Saisie passif', 'Saisie TCR']
-            for f in feuilles_attendues:
-                if f in wb.sheetnames:
-                    ws = wb[f]
-                    print(f"  ✅ '{f}' : {ws.max_row} lignes × {ws.max_column} cols")
+def create_excel(path, rows):
+    all_cols = build_cols()
+    wb = Workbook(); ws = wb.active; ws.title = 'Bilans'
+    grp = defaultdict(list); idx = 1
+    for g, _, _ in all_cols: grp[g].append(idx); idx += 1
+    for g, cs in grp.items():
+        s, e = cs[0], cs[-1]
+        if s < e: ws.merge_cells(start_row=1, start_column=s, end_row=1, end_column=e)
+        c = ws.cell(row=1, column=s); c.value = g
+        c.font = Font(bold=True, color='FFFFFFFF', name='Arial', size=11)
+        c.fill = PatternFill('solid', start_color=HDRS[g])
+        c.alignment = Alignment(horizontal='center', vertical='center')
+    for i, (g, _, label) in enumerate(all_cols, start=1):
+        c = ws.cell(row=2, column=i); c.value = label
+        c.font = Font(bold=True, name='Arial', size=8)
+        c.fill = PatternFill('solid', start_color=COLORS[g])
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        ws.column_dimensions[get_column_letter(i)].width = 16
+    ws.row_dimensions[2].height = 30
+    ws.freeze_panes = ws.cell(row=3, column=7)
+    rn = 3
+    for d in rows:
+        annee_n = norm_str(d.get('exercice'))
+        annee_n1 = str(int(annee_n)-1) if annee_n and annee_n.isdigit() else None
+        for exer, annee, suf in [('N', annee_n, 'n'), ('N-1', annee_n1, 'n1')]:
+            for ci, (g, key, _) in enumerate(all_cols, start=1):
+                if g == 'META':
+                    if key == 'exercice': val = exer
+                    elif key == 'annee_exercice': val = annee
+                    else: val = d.get(key)
                 else:
-                    print(f"  ❌ '{f}' : ABSENTE")
-            wb.close()
-        except Exception as e:
-            print(f"❌ Erreur ouverture : {e}")
-else:
-    print("❌ PROBLÈME : fichier introuvable")
-    # Lister les fichiers dans le répertoire
-    parent = TEMPLATE_FORFAIT.parent
-    if parent.exists():
-        print(f"Fichiers dans {parent} :")
-        for f in parent.glob('*'):
-            print(f"  - {f.name} ({f.stat().st_size / 1024:.1f} KB)")
-    else:
-        print(f"Le répertoire {parent} n'existe pas")
+                    val = val_for(d, g, key, suf)
+                c = ws.cell(row=rn, column=ci); c.value = val   # ✅ plus de tuple
+                c.font = Font(name='Arial', size=9)
+                c.fill = PatternFill('solid', start_color=COLORS[g])
+                if isinstance(val, float): c.number_format = '#,##0.00'
+                if g == 'META' and key == 'anomalies' and val:
+                    c.font = Font(name='Arial', size=9, bold=True, color='FFCC0000')
+            rn += 1
+    wb.save(path)
+    print(f'✅ Excel : {path} | {len(rows)} bilans → {rn-3} lignes | {len(all_cols)} colonnes')
 
-# 2. Vérifier les JSON
-print("\n" + "=" * 60)
-print("2. VÉRIFICATION DES JSON")
-print("=" * 60)
-JSON_DIR = Path('/mnt/data/bilans_out/json_bilans')  # ← AJUSTER LE CHEMIN
-if JSON_DIR.exists():
-    json_files = sorted(JSON_DIR.glob('*.json'))
-    print(f"Nombre de JSON : {len(json_files)}")
-    if json_files:
-        import json
-        sample = json.load(open(json_files[0], encoding='utf-8'))
-        print(f"Exemple : {json_files[0].name}")
-        print(f"  entreprise : {sample.get('entreprise')}")
-        print(f"  exercice : {sample.get('exercice')}")
-        print(f"  ACTIF : {len(sample.get('ACTIF', {}))} clés")
-        print(f"  PASSIF : {len(sample.get('PASSIF', {}))} clés")
-        print(f"  TCR : {len(sample.get('TCR', {}))} clés")
-else:
-    print(f"❌ Répertoire JSON introuvable : {JSON_DIR}")
-
-# 3. Vérifier le répertoire de sortie
-print("\n" + "=" * 60)
-print("3. VÉRIFICATION DU RÉPERTOIRE DE SORTIE")
-print("=" * 60)
-FORFAIT_OUTPUT_DIR = Path('/mnt/data/bilans_out/forfaits')  # ← AJUSTER LE CHEMIN
-print(f"Répertoire : {FORFAIT_OUTPUT_DIR}")
-print(f"Existe : {FORFAIT_OUTPUT_DIR.exists()}")
-if FORFAIT_OUTPUT_DIR.exists():
-    forfaits = sorted(FORFAIT_OUTPUT_DIR.glob('*.xls*'))
-    print(f"Fichiers FORFAIT existants : {len(forfaits)}")
-    for f in forfaits[:5]:
-        print(f"  - {f.name} ({f.stat().st_size / 1024:.1f} KB)")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ════════════════════════════════════════════════════════════
-# GÉNÉRATEUR FORFAIT CORRIGÉ
-# Coordonnées basées sur l'analyse exacte du template
-# ════════════════════════════════════════════════════════════
-import shutil
-import json
-import re
-from pathlib import Path
-from openpyxl import load_workbook
-
-# ─── CONFIGURATION (à ajuster) ──────────────────────────────
-TEMPLATE_FORFAIT = Path('/mnt/data/forfait/FORFAIT Cas 1 TARZAALI.xlsx')
-JSON_DIR = Path('/mnt/data/bilans_out/json_bilans')
-FORFAIT_OUTPUT_DIR = Path('/mnt/data/bilans_out/forfaits')
-
-# Créer le répertoire de sortie si nécessaire
-FORFAIT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-# ─── COORDONNÉES DES CELLULES (1-based pour openpyxl) ───────
-# Feuille "Saisie actif" :
-#   Colonnes D-F (4-6) : N-2 (Brut, Amort, Net)
-#   Colonnes G-I (7-9) : N (Brut, Amort, Net)
-#   Colonnes J-L (10-12) : N-1 (Brut, Amort, Net)
-#   Libellés en colonne C (3)
-
-FORFAIT_ACTIF_COORDS = {
-    'ecarts_acquisition_goodwill': 7,
-    'immobilisations_incorporelles': 8,
-    'terrains': 10,
-    'batiments': 11,
-    'autres_immobilisations_corporelles': 12,
-    'immobilisations_en_concession': 13,
-    'immobilisations_en_cours': 14,
-    'titres_mis_en_equivalence': 16,
-    'autres_participations_creances': 17,
-    'autres_titres_immobilises': 18,
-    'prets_actifs_financiers_non_courants': 19,
-    'impots_differes_actif': 20,
-    'total_actif_non_courant': 21,
-    'stocks_encours': 23,
-    'clients': 25,
-    'autres_debiteurs': 26,
-    'impots_assimiles_actif': 27,
-    'autres_creances_assimiles': 28,
-    'placements_financiers_courants': 30,
-    'tresorerie_actif': 31,
-    'total_actif_courant': 32,
-    'total_general_actif': 33,
-}
-
-# Colonnes pour l'actif
-ACTIF_COLS = {
-    'n': {'brut': 7, 'amort': 8, 'net': 9},      # Colonnes G, H, I
-    'n1': {'brut': 10, 'amort': 11, 'net': 12},  # Colonnes J, K, L
-}
-
-# Feuille "Saisie passif" :
-#   Colonne D (4) : N-2
-#   Colonne E (5) : N
-#   Colonne F (6) : N-1
-#   Libellés en colonne C (3)
-
-FORFAIT_PASSIF_COORDS = {
-    'capital_emis': 4,
-    'capital_non_appele': 5,
-    'primes_reserves': 6,
-    'ecart_reevaluation': 7,
-    'ecart_equivalence': 8,
-    'resultat_net_passif': 9,
-    'report_a_nouveau': 10,
-    'part_societe_consolidante': 11,
-    'part_minoritaires': 12,
-    'total_capitaux_propres': 13,
-    'emprunts_dettes_financieres': 15,
-    'impots_differes_provisionnes': 16,
-    'autres_dettes_non_courantes': 17,
-    'provisions_produits_avance': 18,
-    'total_passifs_non_courants': 19,
-    'fournisseurs_rattaches': 21,
-    'impots_passif': 22,
-    'autres_dettes': 23,
-    'tresorerie_passif': 24,
-    'total_passifs_courants': 25,
-    'total_general_passif': 26,
-}
-
-PASSIF_COLS = {'n': 5, 'n1': 6}  # Colonnes E, F
-
-# Feuille "Saisie TCR" :
-#   Colonne E (5) : DEBIT Dinars N
-#   Colonne F (6) : CREDIT Dinars N
-#   Colonne G (7) : DEBIT KDZD N
-#   Colonne H (8) : CREDIT KDZD N
-#   Colonne I (9) : DEBIT KDZD N-1
-#   Colonne J (10) : CREDIT KDZD N-1
-#   Libellés en colonnes C-D (3-4)
-
-FORFAIT_TCR_COORDS = {
-    'ventes_marchandises': 5,
-    'produits_fabriques': 6,
-    'prestations_services': 7,
-    'ventes_travaux': 8,
-    'produits_annexes': 9,
-    'rabais_remises_ristournes_accordes': 10,
-    'chiffre_affaires_net': 11,
-    'production_stockee_destockee': 12,
-    'production_immobilisee': 13,
-    'subvention_exploitation': 14,
-    'production_exercice': 15,
-    'achats_marchandises_vendues': 16,
-    'matieres_premieres': 17,
-    'autres_approvisionnements': 18,
-    'variation_stocks': 19,
-    'achats_etudes_prestations': 20,
-    'autres_consommations': 21,
-    'rabais_remises_obtenus_achats': 22,
-    'sous_traitance_generale': 23,
-    'locations': 24,
-    'entretien_reparations': 25,
-    'primes_assurances': 26,
-    'personnel_exterieur': 27,
-    'remuneration_intermediaires': 28,
-    'publicite': 29,
-    'deplacements_missions': 30,
-    'autres_services': 31,
-    'rabais_remises_obtenus_services': 32,
-    'consommations_exercice': 33,
-    'valeur_ajoutee_exploitation': 34,
-    'charges_personnel': 35,
-    'impots_taxes_assimiles': 36,
-    'excedent_brut_exploitation': 37,
-    'autres_produits_operationnels': 38,
-    'autres_charges_operationnelles': 39,
-    'dotations_amortissements': 40,
-    'provisions': 41,
-    'pertes_valeur': 42,
-    'reprises_pertes_valeur_provisions': 43,
-    'resultat_operationnel': 44,
-    'produits_financiers': 45,
-    'charges_financieres': 46,
-    'resultat_financier': 47,
-    'resultat_ordinaire': 48,
-    'elements_extraordinaires_produits': 49,
-    'elements_extraordinaires_charges': 50,
-    'resultat_extraordinaire': 51,
-    'impots_exigibles_resultats': 52,
-    'impots_differes_resultats': 53,
-    'resultat_net_exercice': 54,
-}
-
-TCR_COLS = {
-    'n': {'debit': 7, 'credit': 8},   # Colonnes G, H
-    'n1': {'debit': 9, 'credit': 10}, # Colonnes I, J
-}
-
-# ─── FONCTIONS ──────────────────────────────────────────────
-def to_kdzd(v):
-    """Dinars → KDZD (÷1000, arrondi 2 décimales)."""
-    if v is None:
-        return None
-    return round(v / 1000.0, 2)
-
-def _clean_name(s):
-    """Nettoie le nom d'entreprise pour le nom de fichier."""
-    return re.sub(r'[^A-Za-z0-9 _-]', '', s or 'ENTREPRISE').strip()
-
-def generate_forfait(result):
-    """Génère un fichier FORFAIT à partir des données extraites."""
-    
-    # Vérifier le template
-    if not TEMPLATE_FORFAIT.exists():
-        print(f"❌ Template introuvable : {TEMPLATE_FORFAIT}")
-        return None
-    
-    if TEMPLATE_FORFAIT.suffix != '.xlsx':
-        print(f"❌ Le template doit être en .xlsx : {TEMPLATE_FORFAIT}")
-        print(f"   Extension actuelle : {TEMPLATE_FORFAIT.suffix}")
-        return None
-    
-    entreprise = _clean_name(result.get('entreprise'))
-    annee = result.get('exercice') or 'XXXX'
-    out_path = FORFAIT_OUTPUT_DIR / f'FORFAIT Cas 1_{entreprise}_{annee}.xlsx'
-    
-    try:
-        # Copier le template
-        shutil.copy2(TEMPLATE_FORFAIT, out_path)
-        
-        # Ouvrir la copie avec openpyxl
-        wb = load_workbook(out_path)
-        
-        actif = result.get('ACTIF') or {}
-        passif = result.get('PASSIF') or {}
-        tcr = result.get('TCR') or {}
-        decl = result.get('DECL') or {}
-        
-        n_filled = 0
-        
-        # ── Saisie actif ────────────────────────────────────
-        if 'Saisie actif' in wb.sheetnames:
-            ws = wb['Saisie actif']
-            
-            # En-tête : Nature bilan (colonne O, ligne 2)
-            ws.cell(row=2, column=15, value='Fiscal')
-            
-            # Date d'arrêté N (colonne O, ligne 4)
-            exerc = result.get('exercice')
-            if exerc:
-                ws.cell(row=4, column=15, value=exerc)
-            
-            # Postes
-            for key, row in FORFAIT_ACTIF_COORDS.items():
-                # N : brut, amort, net
-                v_brut = to_kdzd(actif.get(f'{key}_brut'))
-                v_amort = to_kdzd(actif.get(f'{key}_amort'))
-                v_net = to_kdzd(actif.get(f'{key}_n'))
-                
-                if v_brut is not None:
-                    ws.cell(row=row, column=ACTIF_COLS['n']['brut'], value=v_brut)
-                    n_filled += 1
-                if v_amort is not None:
-                    ws.cell(row=row, column=ACTIF_COLS['n']['amort'], value=v_amort)
-                    n_filled += 1
-                if v_net is not None:
-                    ws.cell(row=row, column=ACTIF_COLS['n']['net'], value=v_net)
-                    n_filled += 1
-                
-                # N-1 : net uniquement
-                v_net_n1 = to_kdzd(actif.get(f'{key}_n1'))
-                if v_net_n1 is not None:
-                    ws.cell(row=row, column=ACTIF_COLS['n1']['net'], value=v_net_n1)
-                    n_filled += 1
-        else:
-            print(f"⚠️ Feuille 'Saisie actif' absente")
-        
-        # ── Saisie passif ───────────────────────────────────
-        if 'Saisie passif' in wb.sheetnames:
-            ws = wb['Saisie passif']
-            
-            for key, row in FORFAIT_PASSIF_COORDS.items():
-                v_n = to_kdzd(passif.get(f'{key}_n'))
-                v_n1 = to_kdzd(passif.get(f'{key}_n1'))
-                
-                if v_n is not None:
-                    ws.cell(row=row, column=PASSIF_COLS['n'], value=v_n)
-                    n_filled += 1
-                if v_n1 is not None:
-                    ws.cell(row=row, column=PASSIF_COLS['n1'], value=v_n1)
-                    n_filled += 1
-        else:
-            print(f"⚠️ Feuille 'Saisie passif' absente")
-        
-        # ── Saisie TCR ──────────────────────────────────────
-        if 'Saisie TCR' in wb.sheetnames:
-            ws = wb['Saisie TCR']
-            
-            for key, row in FORFAIT_TCR_COORDS.items():
-                v_deb_n = to_kdzd(tcr.get(f'{key}_debit_n'))
-                v_cred_n = to_kdzd(tcr.get(f'{key}_credit_n'))
-                v_deb_n1 = to_kdzd(tcr.get(f'{key}_debit_n1'))
-                v_cred_n1 = to_kdzd(tcr.get(f'{key}_credit_n1'))
-                
-                if v_deb_n is not None:
-                    ws.cell(row=row, column=TCR_COLS['n']['debit'], value=v_deb_n)
-                    n_filled += 1
-                if v_cred_n is not None:
-                    ws.cell(row=row, column=TCR_COLS['n']['credit'], value=v_cred_n)
-                    n_filled += 1
-                if v_deb_n1 is not None:
-                    ws.cell(row=row, column=TCR_COLS['n1']['debit'], value=v_deb_n1)
-                    n_filled += 1
-                if v_cred_n1 is not None:
-                    ws.cell(row=row, column=TCR_COLS['n1']['credit'], value=v_cred_n1)
-                    n_filled += 1
-        else:
-            print(f"⚠️ Feuille 'Saisie TCR' absente")
-        
-        # Sauvegarder
-        wb.save(out_path)
-        wb.close()
-        
-        print(f"✅ FORFAIT : {out_path.name} | {n_filled} cellules remplies")
-        return out_path
-        
-    except Exception as e:
-        print(f"❌ Erreur génération FORFAIT : {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-# ─── EXÉCUTION ──────────────────────────────────────────────
-json_files = sorted(JSON_DIR.glob('*.json'))
-if not json_files:
-    print('⚠️ Aucun JSON trouvé — exécute d\'abord le pipeline bilan_V3/V4')
-else:
-    print(f'📁 {len(json_files)} JSON → génération FORFAIT')
-    
-    n_gen = n_skip = n_err = 0
-    for jf in json_files:
-        try:
-            data = json.load(open(jf, encoding='utf-8'))
-            
-            # Vérifier qu'il y a des données
-            if not (data.get('ACTIF') or data.get('PASSIF') or data.get('TCR')):
-                print(f'⏭️  {jf.stem} : aucune donnée financière → ignoré')
-                n_skip += 1
-                continue
-            
-            result = generate_forfait(data)
-            if result:
-                n_gen += 1
-            else:
-                n_err += 1
-                
-        except Exception as e:
-            print(f'❌ {jf.stem} : {e}')
-            n_err += 1
-    
-    print(f'\n✅ {n_gen} FORFAIT générés | {n_skip} ignorés | {n_err} erreurs')
-    print(f'📂 Sortie : {FORFAIT_OUTPUT_DIR}')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ─── Saisie TCR (ventilation DEBIT/CREDIT depuis _n/_n1) ────
-if 'Saisie TCR' in wb.sheetnames:
-    ws = wb['Saisie TCR']
-    
-    # Colonnes KDZD : F=DEBIT N, G=CREDIT N, H=DEBIT N-1, I=CREDIT N-1
-    COL_TCR = {'deb_n': 6, 'cred_n': 7, 'deb_n1': 8, 'cred_n1': 9}
-    
-    # Lignes des postes (1-based)
-    TCR_ROWS = {
-        'ventes_marchandises': 5,
-        'produits_fabriques': 6,
-        'prestations_services': 7,
-        'ventes_travaux': 8,
-        'produits_annexes': 9,
-        'rabais_remises_ristournes_accordes': 10,
-        'chiffre_affaires_net': 11,
-        'production_stockee_destockee': 12,
-        'production_immobilisee': 13,
-        'subvention_exploitation': 14,
-        'production_exercice': 15,
-        'achats_marchandises_vendues': 16,
-        'matieres_premieres': 17,
-        'autres_approvisionnements': 18,
-        'variation_stocks': 19,
-        'achats_etudes_prestations': 20,
-        'autres_consommations': 21,
-        'rabais_remises_obtenus_achats': 22,
-        'sous_traitance_generale': 23,
-        'locations': 24,
-        'entretien_reparations': 25,
-        'primes_assurances': 26,
-        'personnel_exterieur': 27,
-        'remuneration_intermediaires': 28,
-        'publicite': 29,
-        'deplacements_missions': 30,
-        'autres_services': 31,
-        'rabais_remises_obtenus_services': 32,
-        'consommations_exercice': 33,
-        'valeur_ajoutee_exploitation': 34,
-        'charges_personnel': 35,
-        'impots_taxes_assimiles': 36,
-        'excedent_brut_exploitation': 37,
-        'autres_produits_operationnels': 38,
-        'autres_charges_operationnelles': 39,
-        'dotations_amortissements': 40,
-        'provisions': 41,
-        'pertes_valeur': 42,
-        'reprises_pertes_valeur_provisions': 43,
-        'resultat_operationnel': 44,
-        'produits_financiers': 45,
-        'charges_financieres': 46,
-        'resultat_financier': 47,
-        'resultat_ordinaire': 48,
-        'elements_extraordinaires_produits': 49,
-        'elements_extraordinaires_charges': 50,
-        'resultat_extraordinaire': 51,
-        'impots_exigibles_resultats': 52,
-        'impots_differes_resultats': 53,
-        'resultat_net_exercice': 54,
-    }
-    
-    # Postes qui vont au CREDIT (produits)
-    TCR_CREDIT = {
-        'ventes_marchandises', 'produits_fabriques', 'prestations_services',
-        'ventes_travaux', 'produits_annexes', 'chiffre_affaires_net',
-        'production_stockee_destockee', 'production_immobilisee',
-        'subvention_exploitation', 'production_exercice',
-        'rabais_remises_obtenus_achats', 'rabais_remises_obtenus_services',
-        'valeur_ajoutee_exploitation', 'excedent_brut_exploitation',
-        'autres_produits_operationnels', 'reprises_pertes_valeur_provisions',
-        'produits_financiers', 'elements_extraordinaires_produits',
-    }
-    
-    # Postes qui vont au DEBIT (charges)
-    TCR_DEBIT = {
-        'rabais_remises_ristournes_accordes', 'achats_marchandises_vendues',
-        'matieres_premieres', 'autres_approvisionnements', 'variation_stocks',
-        'achats_etudes_prestations', 'autres_consommations',
-        'sous_traitance_generale', 'locations', 'entretien_reparations',
-        'primes_assurances', 'personnel_exterieur', 'remuneration_intermediaires',
-        'publicite', 'deplacements_missions', 'autres_services',
-        'consommations_exercice', 'charges_personnel', 'impots_taxes_assimiles',
-        'autres_charges_operationnelles', 'dotations_amortissements',
-        'provisions', 'pertes_valeur', 'charges_financieres',
-        'elements_extraordinaires_charges', 'impots_exigibles_resultats',
-        'impots_differes_resultats',
-    }
-    
-    # Postes dont le sens dépend du signe de la valeur
-    TCR_VARIABLE = {
-        'resultat_operationnel', 'resultat_financier', 'resultat_ordinaire',
-        'resultat_extraordinaire', 'resultat_net_exercice',
-    }
-    
-    for key, row in TCR_ROWS.items():
-        # Lire les valeurs depuis le JSON (clés _n et _n1)
-        val_n = tcr.get(f'{key}_n')
-        val_n1 = tcr.get(f'{key}_n1')
-        
-        if val_n is None and val_n1 is None:
-            continue
-        
-        # Ventiler N
-        if val_n is not None:
-            val_abs = abs(val_n)
-            if key in TCR_CREDIT:
-                # Produit → CREDIT (si positif), DEBIT (si négatif)
-                col = COL_TCR['cred_n'] if val_n >= 0 else COL_TCR['deb_n']
-                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
-            elif key in TCR_DEBIT:
-                # Charge → DEBIT (si positif), CREDIT (si négatif)
-                col = COL_TCR['deb_n'] if val_n >= 0 else COL_TCR['cred_n']
-                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
-            elif key in TCR_VARIABLE:
-                # Résultat → sens selon le signe
-                col = COL_TCR['cred_n'] if val_n >= 0 else COL_TCR['deb_n']
-                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
-        
-        # Ventiler N-1
-        if val_n1 is not None:
-            val_abs = abs(val_n1)
-            if key in TCR_CREDIT:
-                col = COL_TCR['cred_n1'] if val_n1 >= 0 else COL_TCR['deb_n1']
-                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
-            elif key in TCR_DEBIT:
-                col = COL_TCR['deb_n1'] if val_n1 >= 0 else COL_TCR['cred_n1']
-                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
-            elif key in TCR_VARIABLE:
-                col = COL_TCR['cred_n1'] if val_n1 >= 0 else COL_TCR['deb_n1']
-                ws.cell(row=row, column=col, value=round(val_abs / 1000, 2))
+print('✅ Export Excel OK (correctif tuple TCR appliqué)')
