@@ -1,11 +1,125 @@
-p = CONTROLE_DIR / 'MOF PHARMA 2025.controle.json'
-d = json.loads(p.read_text(encoding='utf-8'))
-pages = d.get('pages', [])
-print('pages:', len(pages))
-for pg in pages[:6]:
-    donnees = pg.get('donnees') or {}
-    n = sum(1 for t, b in donnees.items() if t not in ('brut', 'AUTRE')
-            for cle, vals, _ in lire_bloc(b)
-            for v in (vals or {}).values()
-            if isinstance(v, (int, float)) and not isinstance(v, bool))
-    print(' ', pg['page_id'], pg['classification'].get('types'), '-> valeurs:', n)
+# ════════════════════════════════════════════════════════════
+# CELLULE A — LECTURE DES BLOCS + POSTES A ECRIRE | BILANS_V12
+# Objectif: definir iter_blocs / lire_bloc (manquants) et un
+#           _postes_a_ecrire qui ecarte les valeurs incertaines.
+# Entrees: doc JSON (pages -> donnees -> blocs) + controles_donnees.
+# Sorties: (fixes, dynamiques, ecartes, ignores).
+# Regles: valeur_certaine=False -> jamais ecrite, tracee dans ecartes;
+#         ligne hors modele -> ignores; formule jamais ecrite.
+# ════════════════════════════════════════════════════════════
+def lire_bloc(bloc):
+    if isinstance(bloc, list):
+        sortie = []
+        for i, row in enumerate(bloc):
+            if not isinstance(row, dict):
+                continue
+            vals = {k: v for k, v in row.items() if k != 'libelle_imprime'}
+            sortie.append(('ligne_' + str(i).zfill(3), vals, row.get('libelle_imprime')))
+        return sortie
+    if isinstance(bloc, dict):
+        if isinstance(bloc.get('lignes'), list):
+            sortie = []
+            for i, lg in enumerate(bloc['lignes']):
+                if not isinstance(lg, dict):
+                    continue
+                cle = lg.get('row_code') or ('ligne_' + str(i).zfill(3))
+                sortie.append((cle, lg.get('valeurs') or {}, lg.get('libelle_imprime')))
+            return sortie
+        return [(rc, vals, None) for rc, vals in bloc.items() if isinstance(vals, dict)]
+    return []
+
+def iter_blocs(doc):
+    for page in doc.get('pages', []):
+        for tab, bloc in (page.get('donnees') or {}).items():
+            if tab in ('brut', 'AUTRE') or bloc in (None, {}, []):
+                continue
+            yield page, tab, bloc
+
+def _postes_a_ecrire(doc):
+    fixes, dynamiques, ecartes, ignores = [], {}, [], []
+    for page, tab, bloc in iter_blocs(doc):
+        cert_tab = (page.get('controles_donnees') or {}).get(tab) or {}
+        for cle, vals, libelle in lire_bloc(bloc):
+            vals = vals or {}
+            ctrl_ligne = cert_tab.get(cle) or {}
+            est_libre = str(cle).startswith('ligne_')
+            if not est_libre and tab in MAP_LIGNES and cle in MAP_LIGNES[tab]:
+                for col, v in vals.items():
+                    if v is None:
+                        continue
+                    c = ctrl_ligne.get(col)
+                    if c and c.get('valeur_certaine') is False:
+                        ecartes.append((tab, cle, col, v, c.get('ecart')))
+                        continue
+                    fixes.append((tab, cle, col, v))
+            elif tab in MAP_DYNAMIQUES:
+                if any(v is not None for v in vals.values()) or libelle:
+                    dynamiques.setdefault(tab, []).append({'libelle': libelle, 'valeurs': vals})
+            else:
+                for col, v in vals.items():
+                    if v is not None:
+                        ignores.append((tab, cle, col))
+    return fixes, dynamiques, ecartes, ignores
+
+print('✅ iter_blocs / lire_bloc / _postes_a_ecrire OK')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ════════════════════════════════════════════════════════════
+# CELLULE 18 — TESTS HORS MODELE V12 (syntaxe corrigee)
+# ════════════════════════════════════════════════════════════
+_ok = 0; _tot = 0
+def _t(lib, obt, att):
+    global _ok, _tot
+    _tot += 1; bon = obt == att; _ok += bon
+    print(('✅' if bon else '❌') + ' ' + lib + ('' if bon else ' obtenu=' + repr(obt) + ' attendu=' + repr(att)))
+
+doc_test = {
+    'pages': [
+        {
+            'classification': {'types': ['ACTIF']},
+            'entete_page': {},
+            'donnees': {
+                'ACTIF': {
+                    'batiments': {'montant_brut': 100.0, 'amortissements_provisions_pertes': 10.0,
+                                  'net_n': 90.0, 'net_n1': 80.0},
+                    'ligne_inconnue': {'montant_brut': 5.0},
+                },
+            },
+            'controles_donnees': {
+                'ACTIF': {
+                    'batiments': {
+                        'net_n': {'valeur_certaine': False, 'ecart': 12.0},
+                        'montant_brut': {'valeur_certaine': True},
+                    },
+                },
+            },
+        },
+    ],
+}
+
+fx, dy, ec, ig = _postes_a_ecrire(doc_test)
+_t('valeur incertaine ecartee', any(e[2] == 'net_n' for e in ec), True)
+_t('valeur certaine conservee', any(x[1] == 'batiments' and x[2] == 'montant_brut' for x in fx), True)
+_t('ligne hors modele ignoree', any(i[1] == 'ligne_inconnue' for i in ig), True)
+_t('total (formule) non ecrit', not any(x[1] == 'total_general_actif' for x in fx), True)
+print(str(_ok) + '/' + str(_tot) + ' tests passes')
