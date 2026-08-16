@@ -1,66 +1,53 @@
 # ════════════════════════════════════════════════════════════
-# CELLULE 15bis — AUTO-CALIBRATION DU MODELE | BILANS_V11A
-# Objectif: reconstruire MAP_LIGNES / MAP_DYNAMIQUES en lisant les
-#           libellés imprimés du modèle réel (_5.xlsx), pour absorber
-#           tout décalage d'en-tête entre versions du classeur.
-# Entrées: MODELE_XLSX, SCHEMAS, MAP_FEUILLES, MAP_LIGNES, MAP_DYNAMIQUES.
-# Sorties: MAP_LIGNES / MAP_DYNAMIQUES recalés + affichage de contrôle.
-# Règles: on conserve le drapeau "calculée par formule" de l'ancien mapping ;
-#         un tableau n'est recalé que si ≥ 60 % de ses libellés sont retrouvés.
+# CELLULE 15 — CORRECTION COLONNES (modele G2 reel)
+# Colonne B = marqueur Oui/Non (service) ; donnees decalées +1.
 # ════════════════════════════════════════════════════════════
-def _nl(s):
-    if s is None:
-        return ''
-    s = ''.join(ch for ch in unicodedata.normalize('NFKD', str(s))
-                if unicodedata.category(ch) != 'Mn')
-    return re.sub(r'[^a-z0-9]+', ' ', s.lower()).strip()
+MAP_COLONNES = {
+    'ACTIF': {'montant_brut': 'C', 'amortissements_provisions_pertes': 'D',
+              'net_n': 'E', 'net_n1': 'F'},
+    'PASSIF': {'n': 'C', 'n1': 'D'},
+    'TCR': {'n_debit': 'C', 'n_credit': 'D', 'n1_debit': 'E', 'n1_credit': 'F'},
+    'A1': {'solde_debut': 'C', 'debit': 'D', 'credit': 'E', 'solde_fin': 'F'},
+    'A2': {'debit': 'C', 'credit': 'D', 'solde_debiteur': 'E', 'solde_crediteur': 'F'},
+    'A3': {'montant': 'C'}, 'A4': {'montant': 'C'},
+    'A5': {'dotations_cumulees_debut': 'C', 'dotations_exercice': 'D',
+           'diminutions_elements_sortis': 'E', 'dotations_cumulees_fin': 'F',
+           'dotations_fiscales_exercice': 'G', 'ecarts': 'H'},
+    'A6': {'montants_bruts': 'C', 'tva_deduite': 'D', 'montant_net_a_amortir': 'E'},
+    'A7': {'date_acquisition': 'C', 'montant_net_actif': 'D',
+           'amortissements_pratiques': 'E', 'valeur_nette_comptable': 'F',
+           'prix_cession': 'G', 'plus_value': 'H', 'moins_value': 'I'},
+    'A8': {'provisions_cumulees_debut': 'C', 'dotations_exercice': 'D',
+           'reprises_exercice': 'E', 'provisions_cumulees_fin': 'F'},
+    'A81': {'valeur_creance': 'C', 'perte_valeur_constituee': 'D'},
+    'A82': {'valeur_nominale_debut': 'C', 'perte_valeur_constituee': 'D',
+            'valeur_nette_comptable': 'E'},
+    'A9': {'montant': 'C'}, 'A10': {'montant': 'C'},
+    'A11': {'capitaux_propres': 'C', 'dont_capital': 'D',
+            'quote_part_capital_pct': 'E', 'resultat_dernier_exercice': 'F',
+            'prets_avances': 'G', 'dividendes_encaisses': 'H',
+            'valeur_comptable_titres': 'I'},
+    'A12': {'nif': 'C', 'adresse': 'D', 'montant_percu': 'E'},
+    'A13': {'ca_imposable': 'C', 'ca_exonere': 'D', 'tap_acquittee': 'E'},
+}
 
-def _index_labels(ws, max_row=220):
-    idx = {}
-    for r in range(1, min(ws.max_row, max_row) + 1):
-        for c in ('A', 'B'):
-            v = ws[c + str(r)].value
-            if isinstance(v, str) and v.strip():
-                idx.setdefault(_nl(v), r)
-    return idx
+MAP_ENTETE = {'nif': 'C4', 'entreprise': 'C5', 'exercice': 'C6'}
 
-def calibrer_modele(chemin_modele=MODELE_XLSX):
-    wb = openpyxl.load_workbook(chemin_modele, data_only=False)
-    for tab, feuille in MAP_FEUILLES.items():
-        if feuille not in wb.sheetnames:
-            continue
-        ws = wb[feuille]
-        idx = _index_labels(ws)
+MAP_MILLESIMES = [
+    ('1. Bilan Actif', 'C8', 'N'), ('1. Bilan Actif', 'F8', 'N1'),
+    ('2. Bilan Passif', 'C8', 'N'), ('2. Bilan Passif', 'D8', 'N1'),
+    ('3. TCR', 'C8', 'N'), ('3. TCR', 'E8', 'N1'),
+]
 
-        # ── tableaux fixes : ligne = première occurrence du libellé imprimé ──
-        new = {}
-        for rc, lab in SCHEMAS[tab]['postes'].items():
-            nl = _nl(lab)
-            if not nl:
-                continue
-            hit = None
-            for text, r in idx.items():
-                if (nl in text) or (len(text) >= 6 and text in nl):
-                    hit = r
-                    break
-            if hit:
-                drapeau_formule = MAP_LIGNES.get(tab, {}).get(rc, (hit, False))[1]
-                new[rc] = (hit, drapeau_formule)
-        if len(new) >= 0.6 * len(SCHEMAS[tab]['postes']):
-            MAP_LIGNES[tab] = new
 
-        # ── tableaux dynamiques : plage = entre l'en-tête et le premier TOTAL ──
-        if tab in MAP_DYNAMIQUES:
-            debut, fin, col_lib = MAP_DYNAMIQUES[tab]
-            r_tot = next((r for text, r in idx.items() if text.startswith('total')), None)
-            if r_tot and r_tot > debut:
-                MAP_DYNAMIQUES[tab] = (min(debut, r_tot - 1), r_tot - 1, col_lib)
-    wb.close()
 
-calibrer_modele()
 
-print('✅ Modèle calibré sur les libellés imprimés')
-for tab, rc in [('ACTIF', 'terrains'), ('ACTIF', 'total_general_actif'),
-                ('PASSIF', 'capital_emis'), ('TCR', 'charges_personnel'),
-                ('A9', 'total_reintegrations'), ('A10', 'affectation_dividendes')]:
-    print('  ', tab, rc, '-> ligne', MAP_LIGNES.get(tab, {}).get(rc))
+
+
+
+
+
+ws = wb['1. Bilan Actif']
+for r in (8, 9, 11):
+    print(r, [(get_column_letter(c), ws.cell(r, c).value)
+              for c in range(1, 8) if ws.cell(r, c).value is not None])
