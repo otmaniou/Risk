@@ -1,53 +1,41 @@
-# ════════════════════════════════════════════════════════════
-# CELLULE 15 — CORRECTION COLONNES (modele G2 reel)
-# Colonne B = marqueur Oui/Non (service) ; donnees decalées +1.
-# ════════════════════════════════════════════════════════════
 MAP_COLONNES = {
-    'ACTIF': {'montant_brut': 'C', 'amortissements_provisions_pertes': 'D',
-              'net_n': 'E', 'net_n1': 'F'},
-    'PASSIF': {'n': 'C', 'n1': 'D'},
-    'TCR': {'n_debit': 'C', 'n_credit': 'D', 'n1_debit': 'E', 'n1_credit': 'F'},
-    'A1': {'solde_debut': 'C', 'debit': 'D', 'credit': 'E', 'solde_fin': 'F'},
-    'A2': {'debit': 'C', 'credit': 'D', 'solde_debiteur': 'E', 'solde_crediteur': 'F'},
-    'A3': {'montant': 'C'}, 'A4': {'montant': 'C'},
-    'A5': {'dotations_cumulees_debut': 'C', 'dotations_exercice': 'D',
-           'diminutions_elements_sortis': 'E', 'dotations_cumulees_fin': 'F',
-           'dotations_fiscales_exercice': 'G', 'ecarts': 'H'},
-    'A6': {'montants_bruts': 'C', 'tva_deduite': 'D', 'montant_net_a_amortir': 'E'},
-    'A7': {'date_acquisition': 'C', 'montant_net_actif': 'D',
-           'amortissements_pratiques': 'E', 'valeur_nette_comptable': 'F',
-           'prix_cession': 'G', 'plus_value': 'H', 'moins_value': 'I'},
-    'A8': {'provisions_cumulees_debut': 'C', 'dotations_exercice': 'D',
-           'reprises_exercice': 'E', 'provisions_cumulees_fin': 'F'},
-    'A81': {'valeur_creance': 'C', 'perte_valeur_constituee': 'D'},
-    'A82': {'valeur_nominale_debut': 'C', 'perte_valeur_constituee': 'D',
-            'valeur_nette_comptable': 'E'},
-    'A9': {'montant': 'C'}, 'A10': {'montant': 'C'},
-    'A11': {'capitaux_propres': 'C', 'dont_capital': 'D',
-            'quote_part_capital_pct': 'E', 'resultat_dernier_exercice': 'F',
-            'prets_avances': 'G', 'dividendes_encaisses': 'H',
-            'valeur_comptable_titres': 'I'},
-    'A12': {'nif': 'C', 'adresse': 'D', 'montant_percu': 'E'},
-    'A13': {'ca_imposable': 'C', 'ca_exonere': 'D', 'tap_acquittee': 'E'},
+    'ACTIF': {...},
+    ...
 }
 
-MAP_ENTETE = {'nif': 'C4', 'entreprise': 'C5', 'exercice': 'C6'}
+# ── A COLLER ICI ─────────────────────────────────────────────
+# Cellules calculees par le modele : on ne les ecrit jamais,
+# la valeur extraite part en comparaison (totaux).
+CALC_COLS = {
+    'ACTIF': {'net_n', 'net_n1'},
+    'A1':   {'solde_fin'},
+    'A2':   {'solde_debiteur', 'solde_crediteur'},
+    'A5':   {'dotations_cumulees_fin', 'ecarts'},
+    'A7':   {'valeur_nette_comptable', 'plus_value', 'moins_value'},
+    'A8':   {'provisions_cumulees_fin'},
+    'A82':  {'valeur_nette_comptable'},
+}
+# ─────────────────────────────────────────────────────────────
 
-MAP_MILLESIMES = [
-    ('1. Bilan Actif', 'C8', 'N'), ('1. Bilan Actif', 'F8', 'N1'),
-    ('2. Bilan Passif', 'C8', 'N'), ('2. Bilan Passif', 'D8', 'N1'),
-    ('3. TCR', 'C8', 'N'), ('3. TCR', 'E8', 'N1'),
-]
+MAP_LIGNES = { ... }
+
+
+
+
+
+        ligne, calculee = ligne_info
+        coord = colonne + str(ligne)
+        cible = wb[MAP_FEUILLES[tab]][coord]
+        if calculee or col in CALC_COLS.get(tab, set()) or _est_formule(cible):
+
+
+
+
+                    cellule_cible = ws[colonne + str(r)]
+                    if col in CALC_COLS.get(tab, set()) or _est_formule(cellule_cible):
 
 
 
 
 
 
-
-
-
-ws = wb['1. Bilan Actif']
-for r in (8, 9, 11):
-    print(r, [(get_column_letter(c), ws.cell(r, c).value)
-              for c in range(1, 8) if ws.cell(r, c).value is not None])
