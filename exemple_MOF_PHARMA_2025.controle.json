@@ -1,0 +1,3240 @@
+{
+  "schema_version": "11.0",
+  "document": {
+    "fichier_source": "MOF PHARMA 2025.pdf",
+    "date_extraction": "2026-08-16 03:00:00"
+  },
+  "pages": [
+    {
+      "page_id": "p003",
+      "numero_page_scannee": 3,
+      "pdf_page_index": 2,
+      "classification": {
+        "types": [
+          "ACTIF"
+        ],
+        "type_page": "ACTIF",
+        "page_blanche": false,
+        "page_annexe": true
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "ACTIF": {
+          "ecarts_acquisition_goodwill": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "immobilisations_incorporelles": {
+            "montant_brut": 300000,
+            "amortissements_provisions_pertes": 127500,
+            "net_n": 172500,
+            "net_n1": 232500
+          },
+          "terrains": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "batiments": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "autres_immobilisations_corporelles": {
+            "montant_brut": 279673579,
+            "amortissements_provisions_pertes": 48401022,
+            "net_n": 231272557,
+            "net_n1": 154926936
+          },
+          "immobilisations_en_concession": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "immobilisations_en_cours": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "titres_mis_en_equivalence": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "autres_participations_creances": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "autres_titres_immobilises": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "prets_actifs_financiers_non_courants": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "impots_differes_actif": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "total_actif_non_courant": {
+            "montant_brut": 279973579,
+            "amortissements_provisions_pertes": 48528522,
+            "net_n": 231445057,
+            "net_n1": 155159436
+          },
+          "stocks_encours": {
+            "montant_brut": 53035400,
+            "amortissements_provisions_pertes": null,
+            "net_n": 53035400,
+            "net_n1": 257185175
+          },
+          "clients": {
+            "montant_brut": 69060109,
+            "amortissements_provisions_pertes": null,
+            "net_n": 69060109,
+            "net_n1": 44591141
+          },
+          "autres_debiteurs": {
+            "montant_brut": 2640,
+            "amortissements_provisions_pertes": null,
+            "net_n": 2640,
+            "net_n1": null
+          },
+          "impots_assimiles_actif": {
+            "montant_brut": 37054478,
+            "amortissements_provisions_pertes": null,
+            "net_n": 37054478,
+            "net_n1": 40065101
+          },
+          "autres_creances_assimiles": {
+            "montant_brut": 59500,
+            "amortissements_provisions_pertes": null,
+            "net_n": 59500,
+            "net_n1": null
+          },
+          "placements_financiers_courants": {
+            "montant_brut": null,
+            "amortissements_provisions_pertes": null,
+            "net_n": null,
+            "net_n1": null
+          },
+          "tresorerie_actif": {
+            "montant_brut": 427362281,
+            "amortissements_provisions_pertes": null,
+            "net_n": 427362281,
+            "net_n1": 38451101
+          },
+          "total_actif_courant": {
+            "montant_brut": 586674408,
+            "amortissements_provisions_pertes": 0,
+            "net_n": 586674408,
+            "net_n1": 380292518
+          },
+          "total_general_actif": {
+            "montant_brut": 866547987,
+            "amortissements_provisions_pertes": 48528522,
+            "net_n": 818019465,
+            "net_n1": 535451954
+          }
+        }
+      },
+      "controles_donnees": {
+        "ACTIF": {
+          "immobilisations_incorporelles": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "amortissements_provisions_pertes": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 172500.0,
+              "valeur_recalculee": 172500.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_immobilisations_corporelles": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "amortissements_provisions_pertes": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 231272557.0,
+              "valeur_recalculee": 231272557.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_actif_non_courant": {
+            "montant_brut": {
+              "valeur_certaine": true,
+              "valeur_extraite": 279973579.0,
+              "valeur_recalculee": 279973579.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "amortissements_provisions_pertes": {
+              "valeur_certaine": true,
+              "valeur_extraite": 48528522.0,
+              "valeur_recalculee": 48528522.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 231445057.0,
+              "valeur_recalculee": 231445057.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": true,
+              "valeur_extraite": 155159436.0,
+              "valeur_recalculee": 155159436.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "stocks_encours": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 53035400.0,
+              "valeur_recalculee": 53035400.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "clients": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 69060109.0,
+              "valeur_recalculee": 69060109.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_debiteurs": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 2640.0,
+              "valeur_recalculee": 2640.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "impots_assimiles_actif": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 37054478.0,
+              "valeur_recalculee": 37054478.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_creances_assimiles": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 59500.0,
+              "valeur_recalculee": 59500.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "tresorerie_actif": {
+            "montant_brut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 427362281.0,
+              "valeur_recalculee": 427362281.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_actif_courant": {
+            "montant_brut": {
+              "valeur_certaine": false,
+              "valeur_extraite": 586674408.0,
+              "valeur_recalculee": 586574408.0,
+              "ecart": 100000.0,
+              "statut": "ecart_significatif"
+            },
+            "amortissements_provisions_pertes": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 586674408.0,
+              "valeur_recalculee": 586674408.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": true,
+              "valeur_extraite": 380292518.0,
+              "valeur_recalculee": 380292518.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "total_general_actif": {
+            "montant_brut": {
+              "valeur_certaine": false,
+              "valeur_extraite": 866547987.0,
+              "valeur_recalculee": 866647987.0,
+              "ecart": -100000.0,
+              "statut": "ecart_significatif"
+            },
+            "amortissements_provisions_pertes": {
+              "valeur_certaine": true,
+              "valeur_extraite": 48528522.0,
+              "valeur_recalculee": 48528522.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 818019465.0,
+              "valeur_recalculee": 818019465.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "net_n1": {
+              "valeur_certaine": true,
+              "valeur_extraite": 535451954.0,
+              "valeur_recalculee": 535451954.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p004",
+      "numero_page_scannee": 4,
+      "pdf_page_index": 3,
+      "classification": {
+        "types": [
+          "PASSIF"
+        ],
+        "type_page": "PASSIF",
+        "page_blanche": false,
+        "page_annexe": false
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "PASSIF": {
+          "capital_emis": {
+            "n": 205000000,
+            "n1": 205000000
+          },
+          "capital_non_appele": {
+            "n": null,
+            "n1": null
+          },
+          "primes_reserves": {
+            "n": 110191620,
+            "n1": 44695277
+          },
+          "ecart_reevaluation": {
+            "n": null,
+            "n1": null
+          },
+          "ecart_equivalence": {
+            "n": null,
+            "n1": null
+          },
+          "resultat_net_passif": {
+            "n": 29275402,
+            "n1": 65496343
+          },
+          "report_a_nouveau": {
+            "n": null,
+            "n1": null
+          },
+          "part_societe_consolidante": {
+            "n": null,
+            "n1": null
+          },
+          "part_minoritaires": {
+            "n": null,
+            "n1": null
+          },
+          "total_capitaux_propres": {
+            "n": 344467022,
+            "n1": 315191620
+          },
+          "emprunts_dettes_financieres": {
+            "n": 60000000,
+            "n1": 80000000
+          },
+          "impots_differes_provisionnes": {
+            "n": null,
+            "n1": null
+          },
+          "autres_dettes_non_courantes": {
+            "n": null,
+            "n1": null
+          },
+          "provisions_produits_avance": {
+            "n": null,
+            "n1": null
+          },
+          "total_passifs_non_courants": {
+            "n": 60000000,
+            "n1": 80000000
+          },
+          "fournisseurs_rattaches": {
+            "n": 589759,
+            "n1": 359932
+          },
+          "impots_passif": {
+            "n": 11080039,
+            "n1": 76658
+          },
+          "autres_dettes": {
+            "n": 401882646,
+            "n1": 139822555
+          },
+          "tresorerie_passif": {
+            "n": null,
+            "n1": 1190
+          },
+          "total_passifs_courants": {
+            "n": 413552444,
+            "n1": 140260335
+          },
+          "total_general_passif": {
+            "n": 818019466,
+            "n1": 535451955
+          }
+        }
+      },
+      "controles_donnees": {
+        "PASSIF": {
+          "capital_emis": {
+            "n": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "primes_reserves": {
+            "n": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_net_passif": {
+            "n": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_capitaux_propres": {
+            "n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 344467022.0,
+              "valeur_recalculee": 344467022.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "n1": {
+              "valeur_certaine": true,
+              "valeur_extraite": 315191620.0,
+              "valeur_recalculee": 315191620.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "emprunts_dettes_financieres": {
+            "n": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_passifs_non_courants": {
+            "n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 60000000.0,
+              "valeur_recalculee": 60000000.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "n1": {
+              "valeur_certaine": true,
+              "valeur_extraite": 80000000.0,
+              "valeur_recalculee": 80000000.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "fournisseurs_rattaches": {
+            "n": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "impots_passif": {
+            "n": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_dettes": {
+            "n": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "tresorerie_passif": {
+            "n1": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_passifs_courants": {
+            "n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 413552444.0,
+              "valeur_recalculee": 413552444.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "n1": {
+              "valeur_certaine": true,
+              "valeur_extraite": 140260335.0,
+              "valeur_recalculee": 140260335.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "total_general_passif": {
+            "n": {
+              "valeur_certaine": true,
+              "valeur_extraite": 818019466.0,
+              "valeur_recalculee": 818019466.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "n1": {
+              "valeur_certaine": true,
+              "valeur_extraite": 535451955.0,
+              "valeur_recalculee": 535451955.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p005",
+      "numero_page_scannee": 5,
+      "pdf_page_index": 4,
+      "classification": {
+        "types": [
+          "TCR"
+        ],
+        "type_page": "TCR",
+        "page_blanche": false,
+        "page_annexe": false
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "TCR": {
+          "ventes_marchandises": {
+            "n_debit": null,
+            "n_credit": 1430090905,
+            "n1_debit": null,
+            "n1_credit": 1212929974
+          },
+          "prestations_services": {
+            "n_debit": null,
+            "n_credit": 6246750,
+            "n1_debit": null,
+            "n1_credit": null
+          },
+          "chiffre_affaires_net": {
+            "n_debit": 0,
+            "n_credit": 1436337655,
+            "n1_debit": 0,
+            "n1_credit": 1212929974
+          },
+          "production_exercice": {
+            "n_debit": 0,
+            "n_credit": 1436337655,
+            "n1_debit": 0,
+            "n1_credit": 1212929974
+          },
+          "achats_marchandises_vendues": {
+            "n_debit": 1319358944,
+            "n_credit": null,
+            "n1_debit": 1099049733,
+            "n1_credit": null
+          },
+          "autres_approvisionnements": {
+            "n_debit": 5429652,
+            "n_credit": null,
+            "n1_debit": 603305,
+            "n1_credit": null
+          },
+          "locations": {
+            "n_debit": 500,
+            "n_credit": null,
+            "n1_debit": null,
+            "n1_credit": null
+          },
+          "entretien_reparations": {
+            "n_debit": 260000,
+            "n_credit": null,
+            "n1_debit": 25000,
+            "n1_credit": null
+          },
+          "primes_assurances": {
+            "n_debit": 4560613,
+            "n_credit": null,
+            "n1_debit": null,
+            "n1_credit": null
+          },
+          "remuneration_intermediaires": {
+            "n_debit": 438150,
+            "n_credit": null,
+            "n1_debit": 406159,
+            "n1_credit": null
+          },
+          "publicite": {
+            "n_debit": 30110,
+            "n_credit": null,
+            "n1_debit": 30110,
+            "n1_credit": null
+          },
+          "deplacements_missions": {
+            "n_debit": 1776854,
+            "n_credit": null,
+            "n1_debit": 4668079,
+            "n1_credit": null
+          },
+          "autres_services": {
+            "n_debit": 1449186,
+            "n_credit": null,
+            "n1_debit": 5284549,
+            "n1_credit": null
+          },
+          "consommations_exercice": {
+            "n_debit": 1333304009,
+            "n_credit": 0,
+            "n1_debit": 1110066935,
+            "n1_credit": 0
+          },
+          "valeur_ajoutee_exploitation": {
+            "n_debit": 0,
+            "n_credit": 103033646,
+            "n1_debit": 0,
+            "n1_credit": 102863039
+          },
+          "charges_personnel": {
+            "n_debit": 16042391,
+            "n_credit": null,
+            "n1_debit": 7155840,
+            "n1_credit": null
+          },
+          "impots_taxes_assimiles": {
+            "n_debit": 635848,
+            "n_credit": null,
+            "n1_debit": 363292,
+            "n1_credit": null
+          },
+          "excedent_brut_exploitation": {
+            "n_debit": 0,
+            "n_credit": 86355407,
+            "n1_debit": 0,
+            "n1_credit": 95343907
+          },
+          "autres_produits_operationnels": {
+            "n_debit": null,
+            "n_credit": 116,
+            "n1_debit": null,
+            "n1_credit": 1983
+          },
+          "autres_charges_operationnelles": {
+            "n_debit": 406467,
+            "n_credit": null,
+            "n1_debit": 58823,
+            "n1_credit": null
+          },
+          "dotations_amortissements": {
+            "n_debit": 41886655,
+            "n_credit": null,
+            "n1_debit": 6634368,
+            "n1_credit": null
+          },
+          "resultat_operationnel": {
+            "n_debit": 0,
+            "n_credit": 44062401,
+            "n1_debit": 0,
+            "n1_credit": 88652699
+          },
+          "produits_financiers": {
+            "n_debit": null,
+            "n_credit": 7167670,
+            "n1_debit": null,
+            "n1_credit": 5039794
+          },
+          "charges_financieres": {
+            "n_debit": 8866802,
+            "n_credit": null,
+            "n1_debit": 5141031,
+            "n1_credit": null
+          },
+          "resultat_financier": {
+            "n_debit": 1699132,
+            "n_credit": 0,
+            "n1_debit": 101237,
+            "n1_credit": 0
+          },
+          "resultat_ordinaire": {
+            "n_debit": 0,
+            "n_credit": 42363269,
+            "n1_debit": 0,
+            "n1_credit": 88551462
+          },
+          "elements_extraordinaires_charges": {
+            "n_debit": 2000000,
+            "n_credit": null,
+            "n1_debit": null,
+            "n1_credit": null
+          },
+          "resultat_extraordinaire": {
+            "n_debit": 2000000,
+            "n_credit": 0,
+            "n1_debit": 0,
+            "n1_credit": 0
+          },
+          "impots_exigibles_resultats": {
+            "n_debit": 11087868,
+            "n_credit": null,
+            "n1_debit": 23055120,
+            "n1_credit": null
+          },
+          "resultat_net_exercice": {
+            "n_debit": 0,
+            "n_credit": 29275401,
+            "n1_debit": 0,
+            "n1_credit": 65496342
+          }
+        }
+      },
+      "controles_donnees": {
+        "TCR": {
+          "ventes_marchandises": {
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "prestations_services": {
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "chiffre_affaires_net": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "production_exercice": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "achats_marchandises_vendues": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_approvisionnements": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "locations": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "entretien_reparations": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "primes_assurances": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "remuneration_intermediaires": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "publicite": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "deplacements_missions": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_services": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "consommations_exercice": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "valeur_ajoutee_exploitation": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "charges_personnel": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "impots_taxes_assimiles": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "excedent_brut_exploitation": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_produits_operationnels": {
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_charges_operationnelles": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "dotations_amortissements": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_operationnel": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "produits_financiers": {
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "charges_financieres": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_financier": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_ordinaire": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "elements_extraordinaires_charges": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_extraordinaire": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "impots_exigibles_resultats": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_net_exercice": {
+            "n_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "n1_credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p007",
+      "numero_page_scannee": 7,
+      "pdf_page_index": 6,
+      "classification": {
+        "types": [
+          "A1"
+        ],
+        "type_page": "A1",
+        "page_blanche": false,
+        "page_annexe": true
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "A1": {
+          "stocks_marchandises": {
+            "solde_debut": 257185175,
+            "debit": 1114511720,
+            "credit": 1319358944,
+            "solde_fin": 52337951
+          },
+          "autres_approvisionnements": {
+            "solde_debut": 0,
+            "debit": 6127100,
+            "credit": 5429652,
+            "solde_fin": 697448
+          },
+          "total": {
+            "solde_debut": 257185175,
+            "debit": 1120638820,
+            "credit": 1324788596,
+            "solde_fin": 53035399
+          }
+        }
+      },
+      "controles_donnees": {
+        "A1": {
+          "stocks_marchandises": {
+            "solde_debut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "solde_fin": {
+              "valeur_certaine": true,
+              "valeur_extraite": 52337951.0,
+              "valeur_recalculee": 52337951.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "autres_approvisionnements": {
+            "solde_debut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "debit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "credit": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "solde_fin": {
+              "valeur_certaine": true,
+              "valeur_extraite": 697448.0,
+              "valeur_recalculee": 697448.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "total": {
+            "solde_debut": {
+              "valeur_certaine": true,
+              "valeur_extraite": 257185175.0,
+              "valeur_recalculee": 257185175.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "debit": {
+              "valeur_certaine": true,
+              "valeur_extraite": 1120638820.0,
+              "valeur_recalculee": 1120638820.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "credit": {
+              "valeur_certaine": true,
+              "valeur_extraite": 1324788596.0,
+              "valeur_recalculee": 1324788596.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "solde_fin": {
+              "valeur_certaine": true,
+              "valeur_extraite": 53035399.0,
+              "valeur_recalculee": 53035399.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p008",
+      "numero_page_scannee": 8,
+      "pdf_page_index": 7,
+      "classification": {
+        "types": [
+          "A3",
+          "A4"
+        ],
+        "type_page": "A3",
+        "page_blanche": false,
+        "page_annexe": true
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "A3": {
+          "documentation_divers": {
+            "montant": 339127
+          },
+          "services_bancaires": {
+            "montant": 1110058
+          },
+          "total_autres_services": {
+            "montant": 1449185
+          },
+          "remunerations_personnel": {
+            "montant": 13081616
+          },
+          "cotisations_sociales": {
+            "montant": 2960775
+          },
+          "total_charges_personnel": {
+            "montant": 16042391
+          },
+          "autres_impots_taxes": {
+            "montant": 635848
+          },
+          "total_impots": {
+            "montant": 635848
+          },
+          "total_general": {
+            "montant": 18127424
+          }
+        },
+        "A4": {
+          "amendes_penalites_dons": {
+            "montant": 406395
+          },
+          "autres_charges_gestion": {
+            "montant": 72
+          },
+          "total_charges": {
+            "montant": 406467
+          },
+          "autres_produits_gestion": {
+            "montant": 116
+          },
+          "total_produits": {
+            "montant": 116
+          }
+        }
+      },
+      "controles_donnees": {
+        "A3": {
+          "documentation_divers": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "services_bancaires": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_autres_services": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 1449185.0,
+              "valeur_recalculee": 1449185.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "remunerations_personnel": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "cotisations_sociales": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_charges_personnel": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 16042391.0,
+              "valeur_recalculee": 16042391.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "autres_impots_taxes": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_impots": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 635848.0,
+              "valeur_recalculee": 635848.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "total_general": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 18127424.0,
+              "valeur_recalculee": 18127424.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          }
+        },
+        "A4": {
+          "amendes_penalites_dons": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "autres_charges_gestion": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_charges": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 406467.0,
+              "valeur_recalculee": 406467.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "autres_produits_gestion": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_produits": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 116.0,
+              "valeur_recalculee": 116.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p009",
+      "numero_page_scannee": 9,
+      "pdf_page_index": 8,
+      "classification": {
+        "types": [
+          "A5"
+        ],
+        "type_page": "A5",
+        "page_blanche": false,
+        "page_annexe": true
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "A5": {
+          "immobilisations_incorporelles": {
+            "dotations_cumulees_debut": 67500,
+            "dotations_exercice": 60000,
+            "diminutions_elements_sortis": 0,
+            "dotations_cumulees_fin": 127500,
+            "dotations_fiscales_exercice": 60000,
+            "ecarts": 0
+          },
+          "immobilisations_corporelles": {
+            "dotations_cumulees_debut": 6574368,
+            "dotations_exercice": 41826655,
+            "diminutions_elements_sortis": 0,
+            "dotations_cumulees_fin": 48401023,
+            "dotations_fiscales_exercice": 41826655,
+            "ecarts": 0
+          },
+          "total": {
+            "dotations_cumulees_debut": 6641868,
+            "dotations_exercice": 41886655,
+            "diminutions_elements_sortis": 0,
+            "dotations_cumulees_fin": 48528523,
+            "dotations_fiscales_exercice": 41886655,
+            "ecarts": 0
+          }
+        }
+      },
+      "controles_donnees": {
+        "A5": {
+          "immobilisations_incorporelles": {
+            "dotations_cumulees_debut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "dotations_exercice": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "diminutions_elements_sortis": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "dotations_cumulees_fin": {
+              "valeur_certaine": true,
+              "valeur_extraite": 127500.0,
+              "valeur_recalculee": 127500.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "dotations_fiscales_exercice": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "ecarts": {
+              "valeur_certaine": true,
+              "valeur_extraite": 0.0,
+              "valeur_recalculee": 0.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "immobilisations_corporelles": {
+            "dotations_cumulees_debut": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "dotations_exercice": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "diminutions_elements_sortis": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "dotations_cumulees_fin": {
+              "valeur_certaine": true,
+              "valeur_extraite": 48401023.0,
+              "valeur_recalculee": 48401023.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "dotations_fiscales_exercice": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            },
+            "ecarts": {
+              "valeur_certaine": true,
+              "valeur_extraite": 0.0,
+              "valeur_recalculee": 0.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "total": {
+            "dotations_cumulees_debut": {
+              "valeur_certaine": true,
+              "valeur_extraite": 6641868.0,
+              "valeur_recalculee": 6641868.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "dotations_exercice": {
+              "valeur_certaine": true,
+              "valeur_extraite": 41886655.0,
+              "valeur_recalculee": 41886655.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "diminutions_elements_sortis": {
+              "valeur_certaine": true,
+              "valeur_extraite": 0.0,
+              "valeur_recalculee": 0.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "dotations_cumulees_fin": {
+              "valeur_certaine": true,
+              "valeur_extraite": 48528523.0,
+              "valeur_recalculee": 48528523.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "dotations_fiscales_exercice": {
+              "valeur_certaine": true,
+              "valeur_extraite": 41886655.0,
+              "valeur_recalculee": 41886655.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            },
+            "ecarts": {
+              "valeur_certaine": true,
+              "valeur_extraite": 0.0,
+              "valeur_recalculee": 0.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p012",
+      "numero_page_scannee": 12,
+      "pdf_page_index": 11,
+      "classification": {
+        "types": [
+          "A9"
+        ],
+        "type_page": "A9",
+        "page_blanche": false,
+        "page_annexe": true
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "A9": {
+          "resultat_net_benefice": {
+            "montant": 29275402
+          },
+          "impots_taxes_non_deductibles": {
+            "montant": 320848
+          },
+          "ibs_impot_exigible": {
+            "montant": 11087868
+          },
+          "amendes_penalites": {
+            "montant": 2150000
+          },
+          "total_reintegrations": {
+            "montant": 13558716
+          },
+          "total_deductions": {
+            "montant": 0
+          },
+          "total_deficits_a_deduire": {
+            "montant": 0
+          },
+          "resultat_fiscal_benefice": {
+            "montant": 42834118
+          },
+          "resultat_fiscal_deficit": {
+            "montant": 0
+          }
+        }
+      },
+      "controles_donnees": {
+        "A9": {
+          "resultat_net_benefice": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "impots_taxes_non_deductibles": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "ibs_impot_exigible": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "amendes_penalites": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_reintegrations": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 13558716.0,
+              "valeur_recalculee": 13558716.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "total_deductions": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "total_deficits_a_deduire": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_fiscal_benefice": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "resultat_fiscal_deficit": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p013",
+      "numero_page_scannee": 13,
+      "pdf_page_index": 12,
+      "classification": {
+        "types": [
+          "A10"
+        ],
+        "type_page": "A10",
+        "page_blanche": false,
+        "page_annexe": true
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "A10": {
+          "origine_resultat_n1": {
+            "montant": 65496343
+          },
+          "origine_total": {
+            "montant": 65496343
+          },
+          "affectation_reserves": {
+            "montant": 65496343
+          },
+          "affectation_total": {
+            "montant": 65496343
+          }
+        }
+      },
+      "controles_donnees": {
+        "A10": {
+          "origine_resultat_n1": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "origine_total": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 65496343.0,
+              "valeur_recalculee": 65496343.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          },
+          "affectation_reserves": {
+            "montant": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "affectation_total": {
+            "montant": {
+              "valeur_certaine": true,
+              "valeur_extraite": 65496343.0,
+              "valeur_recalculee": 65496343.0,
+              "ecart": 0.0,
+              "statut": "coherent"
+            }
+          }
+        }
+      }
+    },
+    {
+      "page_id": "p014",
+      "numero_page_scannee": 14,
+      "pdf_page_index": 13,
+      "classification": {
+        "types": [
+          "A12"
+        ],
+        "type_page": "A12",
+        "page_blanche": false,
+        "page_annexe": true
+      },
+      "entete_page": {
+        "entreprise": "SARL MOF PHARMA",
+        "nif": "002119116225582",
+        "exercice": "31/12/2025"
+      },
+      "donnees": {
+        "A12": [
+          {
+            "libelle_imprime": "CENTRE DE RECHERCHE",
+            "nif": "408005000130081",
+            "adresse": "02 BD F FANONE BP N 39",
+            "montant_percu": 225000
+          },
+          {
+            "libelle_imprime": "ONAB NUTRITION",
+            "nif": "000716097377968",
+            "adresse": "ANNEXE ADM RUE 04 EL",
+            "montant_percu": 213150
+          }
+        ]
+      },
+      "controles_donnees": {
+        "A12": {
+          "ligne_000": {
+            "montant_percu": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          },
+          "ligne_001": {
+            "montant_percu": {
+              "valeur_certaine": null,
+              "statut": "non_verifiable"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "identite": {
+    "entreprise": "SARL MOF PHARMA",
+    "entreprise_cle": "MOF PHARMA",
+    "nif_15": "002119116225582",
+    "exercice_clos": "31/12/2025",
+    "annee_n": 2025,
+    "annee_n1": 2024,
+    "libelle_n": "N : 2025",
+    "libelle_n1": "N-1 : 2024",
+    "concordance": {
+      "nif": {
+        "pages_concordantes": 9,
+        "pages_renseignees": 9
+      },
+      "entreprise": {
+        "pages_concordantes": 9,
+        "pages_renseignees": 9
+      },
+      "exercice": {
+        "pages_concordantes": 9,
+        "pages_renseignees": 9
+      }
+    },
+    "couverture_entete": {
+      "nif_15": {
+        "pages_renseignees": 9,
+        "pages_totales": 9,
+        "pages_absentes": []
+      },
+      "entreprise": {
+        "pages_renseignees": 9,
+        "pages_totales": 9,
+        "pages_absentes": []
+      },
+      "annee_n": {
+        "pages_renseignees": 9,
+        "pages_totales": 9,
+        "pages_absentes": []
+      }
+    },
+    "dossier_homogene": true,
+    "pages": [
+      {
+        "page_id": "p003",
+        "numero_page_scannee": 3,
+        "types": [
+          "ACTIF"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p004",
+        "numero_page_scannee": 4,
+        "types": [
+          "PASSIF"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p005",
+        "numero_page_scannee": 5,
+        "types": [
+          "TCR"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p007",
+        "numero_page_scannee": 7,
+        "types": [
+          "A1"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p008",
+        "numero_page_scannee": 8,
+        "types": [
+          "A3",
+          "A4"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p009",
+        "numero_page_scannee": 9,
+        "types": [
+          "A5"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p012",
+        "numero_page_scannee": 12,
+        "types": [
+          "A9"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p013",
+        "numero_page_scannee": 13,
+        "types": [
+          "A10"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      },
+      {
+        "page_id": "p014",
+        "numero_page_scannee": 14,
+        "types": [
+          "A12"
+        ],
+        "entreprise": "SARL MOF PHARMA",
+        "entreprise_cle": "MOF PHARMA",
+        "nif_brut": "002119116225582",
+        "nif_15": "002119116225582",
+        "nif_statut": "CONFORME",
+        "exercice_clos": "31/12/2025",
+        "annee_n": 2025
+      }
+    ],
+    "alertes": []
+  },
+  "controles": {
+    "tolerance_da": 1.0,
+    "formules": [
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_actif_non_courant",
+        "colonne": "montant_brut",
+        "valeur_extraite": 279973579.0,
+        "valeur_recalculee": 279973579.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_actif_non_courant",
+        "colonne": "amortissements_provisions_pertes",
+        "valeur_extraite": 48528522.0,
+        "valeur_recalculee": 48528522.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_actif_non_courant",
+        "colonne": "net_n",
+        "valeur_extraite": 231445057.0,
+        "valeur_recalculee": 231445057.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_actif_non_courant",
+        "colonne": "net_n1",
+        "valeur_extraite": 155159436.0,
+        "valeur_recalculee": 155159436.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_actif_courant",
+        "colonne": "montant_brut",
+        "valeur_extraite": 586674408.0,
+        "valeur_recalculee": 586574408.0,
+        "ecart": 100000.0,
+        "statut": "ecart_significatif"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_actif_courant",
+        "colonne": "net_n",
+        "valeur_extraite": 586674408.0,
+        "valeur_recalculee": 586574408.0,
+        "ecart": 100000.0,
+        "statut": "ecart_significatif"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_actif_courant",
+        "colonne": "net_n1",
+        "valeur_extraite": 380292518.0,
+        "valeur_recalculee": 380292518.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_general_actif",
+        "colonne": "montant_brut",
+        "valeur_extraite": 866547987.0,
+        "valeur_recalculee": 866647987.0,
+        "ecart": -100000.0,
+        "statut": "ecart_significatif"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_general_actif",
+        "colonne": "amortissements_provisions_pertes",
+        "valeur_extraite": 48528522.0,
+        "valeur_recalculee": 48528522.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_general_actif",
+        "colonne": "net_n",
+        "valeur_extraite": 818019465.0,
+        "valeur_recalculee": 818119465.0,
+        "ecart": -100000.0,
+        "statut": "ecart_significatif"
+      },
+      {
+        "type": "agregat",
+        "tableau": "ACTIF",
+        "poste": "total_general_actif",
+        "colonne": "net_n1",
+        "valeur_extraite": 535451954.0,
+        "valeur_recalculee": 535451954.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_capitaux_propres",
+        "colonne": "n",
+        "valeur_extraite": 344467022.0,
+        "valeur_recalculee": 344467022.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_capitaux_propres",
+        "colonne": "n1",
+        "valeur_extraite": 315191620.0,
+        "valeur_recalculee": 315191620.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_passifs_non_courants",
+        "colonne": "n",
+        "valeur_extraite": 60000000.0,
+        "valeur_recalculee": 60000000.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_passifs_non_courants",
+        "colonne": "n1",
+        "valeur_extraite": 80000000.0,
+        "valeur_recalculee": 80000000.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_passifs_courants",
+        "colonne": "n",
+        "valeur_extraite": 413552444.0,
+        "valeur_recalculee": 413552444.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_passifs_courants",
+        "colonne": "n1",
+        "valeur_extraite": 140260335.0,
+        "valeur_recalculee": 140260335.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_general_passif",
+        "colonne": "n",
+        "valeur_extraite": 818019466.0,
+        "valeur_recalculee": 818019466.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "PASSIF",
+        "poste": "total_general_passif",
+        "colonne": "n1",
+        "valeur_extraite": 535451955.0,
+        "valeur_recalculee": 535451955.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "chiffre_affaires_net",
+        "colonne": "NET",
+        "valeur_extraite": 1436337655.0,
+        "valeur_recalculee": 1436337655.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "chiffre_affaires_net",
+        "colonne": "NET_N1",
+        "valeur_extraite": 1212929974.0,
+        "valeur_recalculee": 1212929974.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "production_exercice",
+        "colonne": "NET",
+        "valeur_extraite": 1436337655.0,
+        "valeur_recalculee": 1436337655.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "production_exercice",
+        "colonne": "NET_N1",
+        "valeur_extraite": 1212929974.0,
+        "valeur_recalculee": 1212929974.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "consommations_exercice",
+        "colonne": "NET",
+        "valeur_extraite": -1333304009.0,
+        "valeur_recalculee": -1333304009.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "consommations_exercice",
+        "colonne": "NET_N1",
+        "valeur_extraite": -1110066935.0,
+        "valeur_recalculee": -1110066935.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "valeur_ajoutee_exploitation",
+        "colonne": "NET",
+        "valeur_extraite": 103033646.0,
+        "valeur_recalculee": 103033646.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "valeur_ajoutee_exploitation",
+        "colonne": "NET_N1",
+        "valeur_extraite": 102863039.0,
+        "valeur_recalculee": 102863039.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "excedent_brut_exploitation",
+        "colonne": "NET",
+        "valeur_extraite": 86355407.0,
+        "valeur_recalculee": 86355407.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "excedent_brut_exploitation",
+        "colonne": "NET_N1",
+        "valeur_extraite": 95343907.0,
+        "valeur_recalculee": 95343907.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_operationnel",
+        "colonne": "NET",
+        "valeur_extraite": 44062401.0,
+        "valeur_recalculee": 44062401.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_operationnel",
+        "colonne": "NET_N1",
+        "valeur_extraite": 88652699.0,
+        "valeur_recalculee": 88652699.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_financier",
+        "colonne": "NET",
+        "valeur_extraite": -1699132.0,
+        "valeur_recalculee": -1699132.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_financier",
+        "colonne": "NET_N1",
+        "valeur_extraite": -101237.0,
+        "valeur_recalculee": -101237.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_ordinaire",
+        "colonne": "NET",
+        "valeur_extraite": 42363269.0,
+        "valeur_recalculee": 42363269.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_ordinaire",
+        "colonne": "NET_N1",
+        "valeur_extraite": 88551462.0,
+        "valeur_recalculee": 88551462.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_extraordinaire",
+        "colonne": "NET",
+        "valeur_extraite": -2000000.0,
+        "valeur_recalculee": -2000000.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_net_exercice",
+        "colonne": "NET",
+        "valeur_extraite": 29275401.0,
+        "valeur_recalculee": 29275401.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "TCR",
+        "poste": "resultat_net_exercice",
+        "colonne": "NET_N1",
+        "valeur_extraite": 65496342.0,
+        "valeur_recalculee": 65496342.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A1",
+        "poste": "total",
+        "colonne": "solde_debut",
+        "valeur_extraite": 257185175.0,
+        "valeur_recalculee": 257185175.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A1",
+        "poste": "total",
+        "colonne": "debit",
+        "valeur_extraite": 1120638820.0,
+        "valeur_recalculee": 1120638820.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A1",
+        "poste": "total",
+        "colonne": "credit",
+        "valeur_extraite": 1324788596.0,
+        "valeur_recalculee": 1324788596.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A1",
+        "poste": "total",
+        "colonne": "solde_fin",
+        "valeur_extraite": 53035399.0,
+        "valeur_recalculee": 53035399.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A3",
+        "poste": "total_autres_services",
+        "colonne": "montant",
+        "valeur_extraite": 1449185.0,
+        "valeur_recalculee": 1449185.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A3",
+        "poste": "total_charges_personnel",
+        "colonne": "montant",
+        "valeur_extraite": 16042391.0,
+        "valeur_recalculee": 16042391.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A3",
+        "poste": "total_impots",
+        "colonne": "montant",
+        "valeur_extraite": 635848.0,
+        "valeur_recalculee": 635848.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A3",
+        "poste": "total_general",
+        "colonne": "montant",
+        "valeur_extraite": 18127424.0,
+        "valeur_recalculee": 18127424.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A4",
+        "poste": "total_charges",
+        "colonne": "montant",
+        "valeur_extraite": 406467.0,
+        "valeur_recalculee": 406467.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A4",
+        "poste": "total_produits",
+        "colonne": "montant",
+        "valeur_extraite": 116.0,
+        "valeur_recalculee": 116.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "dotations_cumulees_debut",
+        "valeur_extraite": 6641868.0,
+        "valeur_recalculee": 6641868.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "dotations_exercice",
+        "valeur_extraite": 41886655.0,
+        "valeur_recalculee": 41886655.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "diminutions_elements_sortis",
+        "valeur_extraite": 0.0,
+        "valeur_recalculee": 0.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "dotations_cumulees_fin",
+        "valeur_extraite": 48528523.0,
+        "valeur_recalculee": 48528523.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "dotations_fiscales_exercice",
+        "valeur_extraite": 41886655.0,
+        "valeur_recalculee": 41886655.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "ecarts",
+        "valeur_extraite": 0.0,
+        "valeur_recalculee": 0.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A9",
+        "poste": "total_reintegrations",
+        "colonne": "montant",
+        "valeur_extraite": 13558716.0,
+        "valeur_recalculee": 13558716.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A10",
+        "poste": "origine_total",
+        "colonne": "montant",
+        "valeur_extraite": 65496343.0,
+        "valeur_recalculee": 65496343.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "agregat",
+        "tableau": "A10",
+        "poste": "affectation_total",
+        "colonne": "montant",
+        "valeur_extraite": 65496343.0,
+        "valeur_recalculee": 65496343.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "immobilisations_incorporelles",
+        "colonne": "net_n",
+        "valeur_extraite": 172500.0,
+        "valeur_recalculee": 172500.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "autres_immobilisations_corporelles",
+        "colonne": "net_n",
+        "valeur_extraite": 231272557.0,
+        "valeur_recalculee": 231272557.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "total_actif_non_courant",
+        "colonne": "net_n",
+        "valeur_extraite": 231445057.0,
+        "valeur_recalculee": 231445057.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "stocks_encours",
+        "colonne": "net_n",
+        "valeur_extraite": 53035400.0,
+        "valeur_recalculee": 53035400.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "clients",
+        "colonne": "net_n",
+        "valeur_extraite": 69060109.0,
+        "valeur_recalculee": 69060109.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "autres_debiteurs",
+        "colonne": "net_n",
+        "valeur_extraite": 2640.0,
+        "valeur_recalculee": 2640.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "impots_assimiles_actif",
+        "colonne": "net_n",
+        "valeur_extraite": 37054478.0,
+        "valeur_recalculee": 37054478.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "autres_creances_assimiles",
+        "colonne": "net_n",
+        "valeur_extraite": 59500.0,
+        "valeur_recalculee": 59500.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "tresorerie_actif",
+        "colonne": "net_n",
+        "valeur_extraite": 427362281.0,
+        "valeur_recalculee": 427362281.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "total_actif_courant",
+        "colonne": "net_n",
+        "valeur_extraite": 586674408.0,
+        "valeur_recalculee": 586674408.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "ACTIF",
+        "poste": "total_general_actif",
+        "colonne": "net_n",
+        "valeur_extraite": 818019465.0,
+        "valeur_recalculee": 818019465.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A1",
+        "poste": "stocks_marchandises",
+        "colonne": "solde_fin",
+        "valeur_extraite": 52337951.0,
+        "valeur_recalculee": 52337951.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A1",
+        "poste": "autres_approvisionnements",
+        "colonne": "solde_fin",
+        "valeur_extraite": 697448.0,
+        "valeur_recalculee": 697448.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A1",
+        "poste": "total",
+        "colonne": "solde_fin",
+        "valeur_extraite": 53035399.0,
+        "valeur_recalculee": 53035399.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A5",
+        "poste": "immobilisations_incorporelles",
+        "colonne": "dotations_cumulees_fin",
+        "valeur_extraite": 127500.0,
+        "valeur_recalculee": 127500.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A5",
+        "poste": "immobilisations_corporelles",
+        "colonne": "dotations_cumulees_fin",
+        "valeur_extraite": 48401023.0,
+        "valeur_recalculee": 48401023.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "dotations_cumulees_fin",
+        "valeur_extraite": 48528523.0,
+        "valeur_recalculee": 48528523.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A5",
+        "poste": "immobilisations_incorporelles",
+        "colonne": "ecarts",
+        "valeur_extraite": 0.0,
+        "valeur_recalculee": 0.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A5",
+        "poste": "immobilisations_corporelles",
+        "colonne": "ecarts",
+        "valeur_extraite": 0.0,
+        "valeur_recalculee": 0.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "type": "ligne",
+        "tableau": "A5",
+        "poste": "total",
+        "colonne": "ecarts",
+        "valeur_extraite": 0.0,
+        "valeur_recalculee": 0.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      }
+    ],
+    "controles_croises": [
+      {
+        "controle": "Equilibre du bilan (N)",
+        "gravite": "critique",
+        "valeur_a": 818019465.0,
+        "valeur_b": 818019466.0,
+        "ecart": -1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Equilibre du bilan (N-1)",
+        "gravite": "critique",
+        "valeur_a": 535451954.0,
+        "valeur_b": 535451955.0,
+        "ecart": -1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Resultat net : TCR = bilan passif (N)",
+        "gravite": "critique",
+        "valeur_a": 29275401.0,
+        "valeur_b": 29275402.0,
+        "ecart": -1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Resultat net : TCR = bilan passif (N-1)",
+        "gravite": "critique",
+        "valeur_a": 65496342.0,
+        "valeur_b": 65496343.0,
+        "ecart": -1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Resultat net : TCR = ligne I du tableau 9",
+        "gravite": "critique",
+        "valeur_a": 29275401.0,
+        "valeur_b": 29275402.0,
+        "ecart": -1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Stocks : total A1 (fin) = poste stocks du bilan (net N)",
+        "gravite": "majeur",
+        "valeur_a": 53035399.0,
+        "valeur_b": 53035400.0,
+        "ecart": -1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Stocks : total A1 (debut) = poste stocks du bilan (net N-1)",
+        "gravite": "majeur",
+        "valeur_a": 257185175.0,
+        "valeur_b": 257185175.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Production stockee : solde A2 = ligne du TCR",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Amortissements : cumul fin A5 = colonne amortissements du bilan",
+        "gravite": "majeur",
+        "valeur_a": 48528523.0,
+        "valeur_b": 48528522.0,
+        "ecart": 1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Amortissements : dotations A5 = dotations du TCR",
+        "gravite": "majeur",
+        "valeur_a": 41886655.0,
+        "valeur_b": 41886655.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Amortissements : ecart A5 = reintegration au tableau 9",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": 0.0,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Charges A3 : TOTAL(1) = autres services du TCR",
+        "gravite": "majeur",
+        "valeur_a": 1449185.0,
+        "valeur_b": 1449186.0,
+        "ecart": -1.0,
+        "statut": "coherent_arrondi"
+      },
+      {
+        "controle": "Charges A3 : TOTAL(2) = charges de personnel du TCR",
+        "gravite": "majeur",
+        "valeur_a": 16042391.0,
+        "valeur_b": 16042391.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Charges A3 : TOTAL(3) = impots et taxes du TCR",
+        "gravite": "majeur",
+        "valeur_a": 635848.0,
+        "valeur_b": 635848.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "A4 : total charges = autres charges operationnelles du TCR",
+        "gravite": "majeur",
+        "valeur_a": 406467.0,
+        "valeur_b": 406467.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "A4 : total produits = autres produits operationnels du TCR",
+        "gravite": "majeur",
+        "valeur_a": 116.0,
+        "valeur_b": 116.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Cessions : plus-values A7 = plus-values du tableau 4",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Cessions : moins-values A7 = moins-values du tableau 4",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Cessions : plus-values A7 = deduction au tableau 9",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Cessions : sorties A7 = diminutions du tableau 5",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": 0.0,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Provisions : dotations A8 = provisions + pertes de valeur du TCR",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Provisions : reprises A8 = reprises du TCR",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Provisions : releve 8/1 = pertes sur creances du tableau 8",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Provisions : releve 8/2 = pertes sur actions du tableau 8",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Fiscal : IBS exigible reintegre = impots exigibles du TCR",
+        "gravite": "majeur",
+        "valeur_a": 11087868.0,
+        "valeur_b": 11087868.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Fiscal : IBS differe reintegre = impots differes du TCR",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Fiscal : resultat = I + reintegrations - deductions - deficits",
+        "gravite": "critique",
+        "valeur_a": 42834118.0,
+        "valeur_b": 42834118.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Fiscal : resultat fiscal declare (DECL) = tableau 9",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": 42834118.0,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Fiscal : resultat comptable declare (DECL) = resultat net du TCR",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": 29275401.0,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Fiscal : CA global declare (DECL) = chiffre d affaires net du TCR",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": 1436337655.0,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Affectation : origine = affectation",
+        "gravite": "critique",
+        "valeur_a": 65496343.0,
+        "valeur_b": 65496343.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Affectation : resultat N-1 = resultat net du bilan (N-1)",
+        "gravite": "majeur",
+        "valeur_a": 65496343.0,
+        "valeur_b": 65496343.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Affectation : reserves = variation des primes et reserves du bilan",
+        "gravite": "majeur",
+        "valeur_a": 65496343.0,
+        "valeur_b": 65496343.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Affectation : augmentation capital = variation du capital emis",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": 0.0,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Affectation : report a nouveau = report du bilan (N)",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Affectation : dividendes = distributions du tableau DIST",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Tableau 12 = remunerations d intermediaires du TCR",
+        "gravite": "majeur",
+        "valeur_a": 438150.0,
+        "valeur_b": 438150.0,
+        "ecart": 0.0,
+        "statut": "coherent"
+      },
+      {
+        "controle": "Sous-traitance : tableau ST = sous-traitance generale du TCR",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "TAP : CA impose + exonere = chiffre d affaires net du TCR",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": 1436337655.0,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Distributions : global = paye par societe + par etablissement",
+        "gravite": "majeur",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      },
+      {
+        "controle": "Participations : valeur des titres = poste du bilan",
+        "gravite": "indicatif",
+        "statut": "non_verifiable",
+        "valeur_a": null,
+        "valeur_b": null,
+        "ecart": null,
+        "commentaire": "Un des deux membres est absent de l extraction."
+      }
+    ],
+    "synthese": {
+      "formules_verifiees": 77,
+      "formules_en_ecart": 4,
+      "controles_verifies": 20,
+      "controles_non_verifiables": 21,
+      "controles_en_ecart": 0,
+      "ecarts_critiques": 0,
+      "arbitrage_requis": true,
+      "liasse_exploitable": true,
+      "identite_homogene": true
+    },
+    "transposition": {
+      "classeur": "MOF_PHARMA_2025.xlsx",
+      "valeurs_ecrites": 101,
+      "totaux_compares": 97,
+      "ecarts_signales": 2,
+      "postes_non_reportes": 0,
+      "cellules_verrouillees": 391,
+      "cellules_saisissables": 5680,
+      "recalcul_libreoffice": true,
+      "valeurs_par_tableau": {
+        "ACTIF": 16,
+        "PASSIF": 15,
+        "TCR": 36,
+        "A1": 6,
+        "A3": 5,
+        "A4": 3,
+        "A5": 8,
+        "A9": 4,
+        "A10": 2,
+        "A12": 6
+      },
+      "detail_ecarts": [
+        {
+          "tableau": "ACTIF",
+          "poste": "total_actif_courant",
+          "colonne": "montant_brut",
+          "feuille": "1. Bilan Actif",
+          "cellule": "B36",
+          "valeur_extraite": 586674408.0,
+          "valeur_recalculee": 586574408.0,
+          "ecart": 100000.0
+        },
+        {
+          "tableau": "ACTIF",
+          "poste": "total_actif_courant",
+          "colonne": "net_n",
+          "feuille": "1. Bilan Actif",
+          "cellule": "D36",
+          "valeur_extraite": 586674408.0,
+          "valeur_recalculee": 586574408.0,
+          "ecart": 100000.0
+        }
+      ]
+    }
+  }
+}
