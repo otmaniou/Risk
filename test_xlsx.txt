@@ -1,73 +1,174 @@
-'rabais_remises_ristournes_obtenus_achats': 'Rabais, remises, ristournes obtenus sur achats',
-'rabais_remises_ristournes_obtenus_services': 'Rabais, remises, ristournes obtenus sur services exterieurs',
+# ════════════════════════════════════════════════════════════
+# CELLULE 10 — PIPELINE PRINCIPAL | BILANS_V13 | PROGRESSION LIVE
+# Objectif: executer le pipeline PDF -> JSON en affichant l'avancement
+#           de CHAQUE etape (rendu, classification, extraction, ecriture).
+# Entrees: PDF dans INPUT_DIR.
+# Sorties: JSON par dossier + index JSONL + log detaille.
+# Regles: checkpoint JSON; pages blanches sans VLM; logs flush immediat.
+# ════════════════════════════════════════════════════════════
+deja = {f.stem for f in JSON_DIR.glob('*.json')}
+a_traiter = [p for p in pdfs if p.stem not in deja]
+log('A traiter: ' + str(len(a_traiter)) + ' | deja traites: ' + str(len(deja)))
 
+t_total = time.time()
+n_ok = 0
+n_err = 0
+index_records = []
+prompt_cache = {}
 
+for num, pdf_path in enumerate(a_traiter, start=1):
+    prefix = '[' + str(num).zfill(4) + '/' + str(len(a_traiter)) + '] '
+    t_pdf = time.time()
+    log(prefix + 'DEMARRAGE ' + pdf_path.name)
+    try:
+        # ── ETAPE 1/5 : rendu PDF + deskew ──
+        t0 = time.time()
+        pages = pdf_to_pages(pdf_path)
+        log(prefix + 'ETAPE 1/5 rendu termine: ' + str(len(pages)) + ' pages en ' + str(round(time.time()-t0, 1)) + 's')
 
+        # ── ETAPE 2/5 : detection pages blanches ──
+        page_objects = []
+        active_pages = []
+        for p in pages:
+            if is_blank(p['image']):
+                page_objects.append(build_blank_page(p, pdf_path.name))
+            else:
+                active_pages.append(p)
+        log(prefix + 'ETAPE 2/5 pages blanches: ' + str(len(page_objects)) + ' | pages actives: ' + str(len(active_pages)))
 
+        tok_in = 0
+        tok_out = 0
 
+        if active_pages:
+            # ── ETAPE 3/5 : classification par contenu (1200px) ──
+            t0 = time.time()
+            mini = [resize(p['image'], CLASSIF_RES) for p in active_pages]
+            reps1 = []
+            nb_cls = (len(mini) + CLASSIF_BATCH_SIZE - 1) // CLASSIF_BATCH_SIZE
+            for i_bs, bs in enumerate(chunks(mini, CLASSIF_BATCH_SIZE), 1):
+                reps1 += ask_batch(PROMPT_CLASSIF, bs)
+                log(prefix + '  classification batch ' + str(i_bs) + '/' + str(nb_cls) + ' (' + str(len(bs)) + ' pages)')
+            tok_in += sum(r['tokens_in'] for r in reps1)
+            tok_out += sum(r['tokens_out'] for r in reps1)
+            log(prefix + 'ETAPE 3/5 classification terminee en ' + str(round(time.time()-t0, 1)) + 's')
 
+            pages_typed = []
+            type_counts = {}
+            for p, rep in zip(active_pages, reps1):
+                d = parse_json(rep['text'])
+                titre = norm_str(d.get('titre'))
+                t_model = (norm_str(d.get('type')) or '').upper()
+                types, nums = types_from_title(titre)
+                if not types:
+                    types = [t_model] if t_model in ('ACTIF','PASSIF','TCR','DECL') else ['AUTRE']
+                p['types'] = types
+                p['annexe_nums'] = nums
+                pages_typed.append((p, types))
+                label = '+'.join(types)
+                type_counts[label] = type_counts.get(label, 0) + 1
+            log(prefix + '  types detectes: ' + ', '.join(str(k) + '=' + str(v) for k, v in sorted(type_counts.items())))
 
+            del mini, reps1
+            gc.collect()
 
+            # ── ETAPE 4/5 : extraction structuree par groupe de types ──
+            groups = {}
+            for p, types in pages_typed:
+                groups.setdefault(tuple(types), []).append(p)
 
-('TCR', 'consommations_exercice', 'NET', [
-  ('+','achats_marchandises_vendues'), ('+','matieres_premieres'),
-  ('+','autres_approvisionnements'), ('+','variation_stocks'),
-  ('+','achats_etudes_prestations'), ('+','autres_consommations'),
-  ('-','rabais_remises_ristournes_obtenus_achats'),
-  ('+','sous_traitance_generale'), ('+','locations'), ('+','entretien_reparations'),
-  ('+','primes_assurances'), ('+','personnel_exterieur'), ('+','remuneration_intermediaires'),
-  ('+','publicite'), ('+','deplacements_missions'), ('+','autres_services'),
-  ('-','rabais_remises_ristournes_obtenus_services')]),
+            extracted = {}
+            n_groups = len(groups)
+            i_group = 0
+            for key_types, plist in groups.items():
+                i_group += 1
+                prompt = prompt_cache.get(key_types)
+                if prompt is None:
+                    prompt = build_prompt(list(key_types)) if key_types != ('AUTRE',) else \
+                        ('Lis cette page d un dossier fiscal algerien. Extrais en JSON strict: type_page, titre_page, entete, tables (liste de {table_libelle, colonnes, lignes}). ' + chr(10).join(RULES))
+                    prompt_cache[key_types] = prompt
+                nb_batches = (len(plist) + GPU_BATCH_SIZE - 1) // GPU_BATCH_SIZE
+                batch_no = 0
+                for batch in chunks(plist, GPU_BATCH_SIZE):
+                    batch_no += 1
+                    page_nums = [str(p['index'] + 1) for p in batch]
+                    log(prefix + 'ETAPE 4/5 extraction ' + '+'.join(key_types) + ' | groupe ' + str(i_group) + '/' + str(n_groups) + ' | batch ' + str(batch_no) + '/' + str(nb_batches) + ' | pages [' + ','.join(page_nums) + ']')
+                    t0 = time.time()
+                    reps = ask_batch(prompt, [p['image'] for p in batch])
+                    for p, rep in zip(batch, reps):
+                        tok_in += rep['tokens_in']
+                        tok_out += rep['tokens_out']
+                        data = parse_json(rep['text'])
+                        extracted[p['index']] = build_page_object(p, list(key_types), data, rep, pdf_path.name)
+                    log(prefix + '  batch ' + str(batch_no) + ' termine en ' + str(round(time.time()-t0, 1)) + 's | tokens=' + str(sum(r['tokens_in'] + r['tokens_out'] for r in reps)))
+                    gc.collect()
+                    torch.cuda.empty_cache()
 
+            for p in active_pages:
+                if p['index'] in extracted:
+                    page_objects.append(extracted[p['index']])
+                else:
+                    page_objects.append(build_page_object(p, ['AUTRE'], {}, None, pdf_path.name))
 
+            # ── ETAPE 4bis : PASS 3 rattrapage des pages vides ──
+            n_rattrapes = 0
+            for i, po in enumerate(page_objects):
+                if po['classification'].get('page_blanche'):
+                    continue
+                if po['statut_extraction']['nb_champs_extraits'] > 0:
+                    continue
+                idx = po['pdf_page_index']
+                p = next((x for x in active_pages if x['index'] == idx), None)
+                if p is None:
+                    continue
+                log(prefix + '  PASS 3 rattrapage page ' + str(idx + 1))
+                rep = ask_single(PROMPT_CLASSIF, p['image'])
+                tok_in += rep['tokens_in']; tok_out += rep['tokens_out']
+                new_types = parse_classif(rep['text'])
+                old_types = po['classification'].get('types') or []
+                if new_types and sorted(new_types) != sorted(old_types):
+                    p['types'] = new_types
+                    p['annexe_nums'] = [int(t[1:]) for t in new_types if t.startswith('A') and t[1:].isdigit() and int(t[1:]) <= 13]
+                    rep2 = ask_single(get_prompt(new_types), p['image'])
+                    tok_in += rep2['tokens_in']; tok_out += rep2['tokens_out']
+                    page_objects[i] = build_page_object(p, new_types, parse_json(rep2['text']), rep2, pdf_path.name)
+                    n_rattrapes += 1
+            log(prefix + '  PASS 3: ' + str(n_rattrapes) + ' page(s) rattrapee(s)')
+        else:
+            log(prefix + 'ETAPE 3-4/5 aucune page active (toutes blanches)')
 
+        # ── ETAPE 5/5 : ecriture JSON ──
+        page_objects.sort(key=lambda x: x['pdf_page_index'])
+        elapsed = time.time() - t_pdf
+        result = build_document(pdf_path, pages, page_objects, tok_in, tok_out, elapsed)
+        json_path = JSON_DIR / (pdf_path.stem + '.json')
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2, default=str)
+        n_ok += 1
+        index_records.append({
+            'fichier': pdf_path.name, 'json_path': str(json_path), 'nb_pages': len(pages),
+            'nb_pages_utiles': result['document']['nb_pages_utiles'],
+            'nb_pages_blanches': result['document']['nb_pages_blanches'],
+            'nb_pages_annexes': result['document']['nb_pages_annexes'],
+            'tokens_total': tok_in + tok_out, 'duree_s': round(elapsed, 2),
+            'date_extraction': result['document']['date_extraction']})
+        eta = (time.time() - t_total) / num * (len(a_traiter) - num)
+        log(prefix + 'ETAPE 5/5 JSON ecrit: ' + json_path.name)
+        log(prefix + 'OK ' + pdf_path.name + ' | ' + str(round(elapsed, 1)) + 's | tok=' + str(tok_in + tok_out) +
+            ' | pages=' + str(len(pages)) + ' | utiles=' + str(result['document']['nb_pages_utiles']) +
+            ' | blanches=' + str(result['document']['nb_pages_blanches']) +
+            ' | annexes=' + str(result['document']['nb_pages_annexes']) +
+            ' | ETA ' + str(round(eta/3600, 2)) + 'h')
+    except Exception as e:
+        n_err += 1
+        import traceback as _tb
+        log(prefix + 'ERREUR ' + pdf_path.name + ' — ' + type(e).__name__ + ': ' + str(e))
+        with open(LOG_PATH, 'a', encoding='utf-8') as f:
+            f.write(_tb.format_exc() + chr(10))
+        continue
 
+with open(INDEX_PATH, 'w', encoding='utf-8') as f:
+    for rec in index_records:
+        f.write(json.dumps(rec, ensure_ascii=False) + chr(10))
 
-
-
-
-# ═══ CELLULE 15bis — AUTO-CALIBRAGE TCR SUR LE MODELE ═══
-LABEL_TCR = {
- 'ventes de marchandises':'ventes_marchandises','produits fabriques':'produits_fabriques',
- 'prestations de services':'prestations_services','vente de travaux':'ventes_travaux',
- 'produits annexes':'produits_annexes','rabais, remises, ristournes accordes':'rabais_remises_ristournes_accordes',
- 'chiffre d\'affaires net':'chiffre_affaires_net','production stockee ou destockee':'production_stockee_destockee',
- 'production immobilisee':'production_immobilisee','subventions d\'exploitation':'subvention_exploitation',
- 'i-production de l\'exercice':'production_exercice','achats de marchandises vendues':'achats_marchandises_vendues',
- 'matieres premieres':'matieres_premieres','autres approvisionnements':'autres_approvisionnements',
- 'variations des stocks':'variation_stocks','achats d\'etudes et de prestations de services':'achats_etudes_prestations',
- 'autres consommations':'autres_consommations',
- 'rabais, remises, ristournes obtenus sur achats':'rabais_remises_ristournes_obtenus_achats',
- 'sous-traitance generale':'sous_traitance_generale','locations':'locations',
- 'entretien, reparations et maintenance':'entretien_reparations','primes d\'assurances':'primes_assurances',
- 'personnel exterieur a l\'entreprise':'personnel_exterieur',
- 'remuneration d\'intermediaires et honoraires':'remuneration_intermediaires','publicite':'publicite',
- 'deplacements, missions et receptions':'deplacements_missions','autres services':'autres_services',
- 'rabais, remises, ristournes obtenus sur services exterieurs':'rabais_remises_ristournes_obtenus_services',
- 'ii-consommations de l\'exercice':'consommations_exercice','iii-valeur ajoutee d\'exploitation':'valeur_ajoutee_exploitation',
- 'charges de personnel':'charges_personnel','impots et taxes et versements assimiles':'impots_taxes_assimiles',
- 'iv-excedent brut d\'exploitation':'excedent_brut_exploitation',
- 'autres produits operationnels':'autres_produits_operationnels','autres charges operationnelles':'autres_charges_operationnelles',
- 'dotations aux amortissements':'dotations_amortissements','provision':'provisions','pertes de valeur':'pertes_valeur',
- 'reprise sur pertes de valeur et provisions':'reprises_pertes_valeur_provisions',
- 'v-resultat operationnel':'resultat_operationnel','produits financiers':'produits_financiers',
- 'charges financieres':'charges_financieres','vi-resultat financier':'resultat_financier',
- 'vii-resultat ordinaire':'resultat_ordinaire','elements extraordinaires (produits)':'elements_extraordinaires_produits',
- 'elements extraordinaires (charges)':'elements_extraordinaires_charges','viii-resultat extraordinaire':'resultat_extraordinaire',
- 'impots exigibles sur resultats':'impots_exigibles_resultats',
- 'impots differes (variations) sur resultats':'impots_differes_resultats',
- 'ix - resultat net de l\'exercice':'resultat_net_exercice'}
-
-import openpyxl
-wb = openpyxl.load_workbook(MODELE_XLSX)
-ws = wb['3. TCR']
-new_map = {}
-for r in range(1, ws.max_row + 1):
-    lab = norm_key(' '.join(str(ws.cell(r, c).value or '') for c in (1, 2)))
-    key = LABEL_TCR.get(lab)
-    if key:
-        formule = any(isinstance(ws.cell(r, c).value, str) and str(ws.cell(r, c).value).startswith('=') for c in range(3, 7))
-        new_map[key] = (r, formule)
-MAP_LIGNES['TCR'] = new_map
-manquants = set(SCHEMAS['TCR']['postes']) - set(new_map)
-print('✅ TCR calibré :', len(new_map), 'lignes | non trouvées :', manquants or 'aucune')
+log('✅ Termine en ' + str(round(time.time() - t_total, 1)) + 's | OK ' + str(n_ok) + ' | Erreurs ' + str(n_err))
+log('Index JSON: ' + str(INDEX_PATH))
