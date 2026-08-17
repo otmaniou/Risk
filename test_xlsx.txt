@@ -1,179 +1,73 @@
-# ════════════════════════════════════════════════════════════
-# CELLULE 16bis — CORRECTIF ANNOTATIONS TCR + ARRONDIS | BILANS_V11A
-# Objectif: 1) sans LibreOffice, annoter aussi les totaux TCR en
-#           reconvertissant NET -> DEBIT/CREDIT (convention du modele :
-#           DEBIT = MAX(0;-NET), CREDIT = MAX(0;NET)) ;
-#           2) afficher en jaune les ecarts d'arrondi (+/- 1 DA).
-# Regles: aucune valeur ecrite ici ; uniquement commentaires + surbrillance.
-# ════════════════════════════════════════════════════════════
-_JAUNE_FOND = PatternFill('solid', start_color='FFF2CC')
-
-def _comparer_et_annoter(chemin_calcule, wb, totaux, doc=None, tolerance=TOLERANCE_DA):
-    calc = None
-    if chemin_calcule is not None:
-        try:
-            calc = openpyxl.load_workbook(chemin_calcule, data_only=True)
-        except Exception:
-            calc = None
-
-    replis = {}
-    if calc is None and doc is not None:
-        for f in (doc.get('controles') or {}).get('formules', []):
-            replis[(f['tableau'], f['poste'], f['colonne'])] = f['valeur_recalculee']
-
-    anomalies, arrondis = [], []
-    for feuille, coord, tab, rc, col, extraite in totaux:
-        recalc = None
-        if calc is not None:
-            v = calc[feuille][coord].value
-            if v is None:
-                continue
-            recalc = float(v)
-        else:
-            if (tab, rc, col) in replis:
-                recalc = float(replis[(tab, rc, col)])
-            elif tab == 'TCR' and col in ('n_debit', 'n_credit', 'n1_debit', 'n1_credit'):
-                cle_net = 'NET' if col in ('n_debit', 'n_credit') else 'NET_N1'
-                if (tab, rc, cle_net) not in replis:
-                    continue
-                net = float(replis[(tab, rc, cle_net)])
-                recalc = max(0.0, -net) if col in ('n_debit', 'n1_debit') else max(0.0, net)
-            else:
-                continue
-
-        ecart = extraite - recalc
-        if abs(ecart) <= 1e-9:
-            continue
-        c = wb[feuille][coord]
-        if abs(ecart) <= tolerance:
-            c.fill = _JAUNE_FOND
-            c.comment = Comment(
-                'ECART D ARRONDI (+/- 1 DA)\n--------------------\n'
-                'Valeur lue sur la liasse : ' + format(extraite, ',.2f') + '\n'
-                'Valeur recalculee        : ' + format(recalc, ',.2f') + '\n'
-                'Ecart                    : ' + format(ecart, ',.2f') + '\n\n'
-                'Simple arrondi : aucune correction necessaire.',
-                'Controle extraction')
-            c.comment.width = 320; c.comment.height = 170
-            arrondis.append({'tableau': tab, 'poste': rc, 'colonne': col,
-                             'feuille': feuille, 'cellule': coord,
-                             'valeur_extraite': extraite, 'valeur_recalculee': recalc,
-                             'ecart': round(ecart, 2)})
-            continue
-        c.border = _ROUGE; c.fill = _ROUGE_FOND; c.font = _ROUGE_TEXTE
-        c.comment = Comment(
-            'INCOHERENCE DETECTEE\n--------------------\n'
-            'Valeur lue sur la liasse : ' + format(extraite, ',.2f') + '\n'
-            'Valeur recalculee        : ' + format(recalc, ',.2f') + '\n'
-            'Ecart                    : ' + format(ecart, ',.2f') + '\n\n'
-            'La cellule affiche la valeur RECALCULEE.\n'
-            'Causes possibles : total mal lu a l OCR, ligne de detail\n'
-            'manquante, ou liasse deposee elle-meme incoherente.',
-            'Controle extraction')
-        c.comment.width = 340; c.comment.height = 190
-        anomalies.append({'tableau': tab, 'poste': rc, 'colonne': col,
-                          'feuille': feuille, 'cellule': coord,
-                          'valeur_extraite': extraite, 'valeur_recalculee': recalc,
-                          'ecart': round(ecart, 2)})
-    return anomalies, arrondis
+'rabais_remises_ristournes_obtenus_achats': 'Rabais, remises, ristournes obtenus sur achats',
+'rabais_remises_ristournes_obtenus_services': 'Rabais, remises, ristournes obtenus sur services exterieurs',
 
 
-def _feuille_archive(wb, doc, anomalies, arrondis, ignores):
-    if '0. Données extraites' in wb.sheetnames:
-        del wb['0. Données extraites']
-    ws = wb.create_sheet('0. Données extraites', 0)
-    ident = doc.get('identite') or {}
-    synth = (doc.get('controles') or {}).get('synthese', {})
-    ws['A1'] = 'DONNEES EXTRAITES DE LA LIASSE — PIECE DE REFERENCE'
-    ws['A1'].font = Font(bold=True, size=14)
-    ws['A2'] = ('Valeurs telles que lues sur la liasse deposee. Les feuilles '
-                'suivantes sont une copie de travail dont les totaux sont recalcules.')
-    ws['A2'].font = Font(italic=True, size=9)
-    infos = [('Fichier source', doc.get('document', {}).get('fichier_source')),
-             ('Date extraction', doc.get('document', {}).get('date_extraction')),
-             ('Entreprise', ident.get('entreprise')), ('NIF (15 positions)', ident.get('nif_15')),
-             ('Exercice clos', ident.get('exercice_clos')), ('Exercice N', ident.get('annee_n')),
-             ('Exercice N-1', ident.get('annee_n1')),
-             ('Dossier homogene', 'OUI' if ident.get('dossier_homogene') else 'NON'),
-             ('Formules en ecart', synth.get('formules_en_ecart')),
-             ('Controles en ecart', synth.get('controles_en_ecart')),
-             ('Ecarts critiques', synth.get('ecarts_critiques')),
-             ('Arbitrage requis', 'OUI' if synth.get('arbitrage_requis') else 'NON')]
-    r = 4
-    for lib, val in infos:
-        ws.cell(r, 1, lib).font = Font(bold=True); ws.cell(r, 2, val); r += 1
-    r += 1; ws.cell(r, 1, 'ALERTES D IDENTITE').font = Font(bold=True, size=12); r += 1
-    for a in ident.get('alertes', []):
-        ws.cell(r, 1, a['gravite'].upper()).font = Font(bold=True, color='9C0006')
-        ws.cell(r, 2, a['message']); r += 1
-    if not ident.get('alertes'):
-        ws.cell(r, 2, 'Aucune — toutes les pages designent le meme dossier.'); r += 1
-    r += 1; ws.cell(r, 1, 'ECARTS SIGNIFICATIFS DECLARE / RECALCULE').font = Font(bold=True, size=12); r += 1
-    for i, h in enumerate(['Tableau', 'Poste', 'Colonne', 'Cellule', 'Valeur extraite', 'Valeur recalculee', 'Ecart'], 1):
-        c = ws.cell(r, i, h); c.font = Font(bold=True, color='FFFFFF')
-        c.fill = PatternFill('solid', start_color='1F4E79')
-    r += 1
-    for a in anomalies:
-        ws.cell(r, 1, a['tableau']); ws.cell(r, 2, a['poste']); ws.cell(r, 3, a['colonne'])
-        ws.cell(r, 4, a['feuille'] + '!' + a['cellule'])
-        for i, cle in enumerate(['valeur_extraite', 'valeur_recalculee', 'ecart'], 5):
-            cc = ws.cell(r, i, a[cle]); cc.number_format = '#,##0.00'
-        r += 1
-    if not anomalies:
-        ws.cell(r, 2, 'Aucun ecart au-dela de la tolerance.'); r += 1
-    r += 1; ws.cell(r, 1, 'ECARTS D ARRONDI (+/- 1 DA)').font = Font(bold=True, size=12); r += 1
-    for a in arrondis:
-        ws.cell(r, 1, a['tableau']); ws.cell(r, 2, a['poste'])
-        ws.cell(r, 3, a['feuille'] + '!' + a['cellule']); ws.cell(r, 4, a['ecart']); r += 1
-    if not arrondis:
-        ws.cell(r, 2, 'Aucun.'); r += 1
-    if ignores:
-        r += 1; ws.cell(r, 1, 'POSTES NON REPORTES').font = Font(bold=True, size=12); r += 1
-        for tab, rc, col in ignores:
-            ws.cell(r, 1, tab); ws.cell(r, 2, rc); ws.cell(r, 3, col); r += 1
-    for col, w in zip('ABCDEFG', [26, 46, 20, 24, 20, 20, 16]):
-        ws.column_dimensions[col].width = w
-    return ws
 
 
-def transposer(doc, sortie_xlsx, modele=None, tolerance=TOLERANCE_DA):
-    modele = Path(modele or MODELE_XLSX); sortie = Path(sortie_xlsx)
-    tmp = sortie.with_suffix('.tmp.xlsx')
-    shutil.copy(modele, tmp)
-    wb = openpyxl.load_workbook(tmp)
-    for ws in wb.worksheets:
-        ws.protection.sheet = False
-    ecrits, totaux, ignores, par_tableau = _ecrire_valeurs(wb, doc)
-    wb.save(tmp)
-    recalcule = False
-    if RECALC_DISPONIBLE:
-        try:
-            subprocess.run([sys.executable, str(RECALC_TOOL), str(tmp), '180'],
-                           capture_output=True, timeout=300)
-            recalcule = True
-        except Exception as e:
-            log('Recalcul LibreOffice indisponible : ' + str(e))
-    else:
-        log('LibreOffice absent — detection des ecarts par le moteur Python.')
-    wb = openpyxl.load_workbook(tmp)
-    anomalies, arrondis = _comparer_et_annoter(tmp if recalcule else None, wb, totaux, doc, tolerance)
-    _feuille_archive(wb, doc, anomalies, arrondis, ignores)
-    n_libres, n_verrous = _proteger_formules(wb)
-    wb.save(sortie); tmp.unlink(missing_ok=True)
-    if RECALC_DISPONIBLE:
-        try:
-            subprocess.run([sys.executable, str(RECALC_TOOL), str(sortie), '180'],
-                           capture_output=True, timeout=300)
-        except Exception as e:
-            log('Recalcul final indisponible : ' + str(e))
-    doc.setdefault('controles', {})['transposition'] = {
-        'classeur': sortie.name, 'valeurs_ecrites': ecrits,
-        'totaux_compares': len(totaux), 'ecarts_signales': len(anomalies),
-        'ecarts_arrondis': len(arrondis), 'postes_non_reportes': len(ignores),
-        'cellules_verrouillees': n_verrous, 'cellules_saisissables': n_libres,
-        'recalcul_libreoffice': RECALC_DISPONIBLE,
-        'valeurs_par_tableau': par_tableau,
-        'detail_ecarts': anomalies, 'detail_arrondis': arrondis}
-    return doc['controles']['transposition']
 
-print('✅ Correctif 16bis chargé — relancez la cellule 17')
+
+
+
+
+('TCR', 'consommations_exercice', 'NET', [
+  ('+','achats_marchandises_vendues'), ('+','matieres_premieres'),
+  ('+','autres_approvisionnements'), ('+','variation_stocks'),
+  ('+','achats_etudes_prestations'), ('+','autres_consommations'),
+  ('-','rabais_remises_ristournes_obtenus_achats'),
+  ('+','sous_traitance_generale'), ('+','locations'), ('+','entretien_reparations'),
+  ('+','primes_assurances'), ('+','personnel_exterieur'), ('+','remuneration_intermediaires'),
+  ('+','publicite'), ('+','deplacements_missions'), ('+','autres_services'),
+  ('-','rabais_remises_ristournes_obtenus_services')]),
+
+
+
+
+
+
+
+
+# ═══ CELLULE 15bis — AUTO-CALIBRAGE TCR SUR LE MODELE ═══
+LABEL_TCR = {
+ 'ventes de marchandises':'ventes_marchandises','produits fabriques':'produits_fabriques',
+ 'prestations de services':'prestations_services','vente de travaux':'ventes_travaux',
+ 'produits annexes':'produits_annexes','rabais, remises, ristournes accordes':'rabais_remises_ristournes_accordes',
+ 'chiffre d\'affaires net':'chiffre_affaires_net','production stockee ou destockee':'production_stockee_destockee',
+ 'production immobilisee':'production_immobilisee','subventions d\'exploitation':'subvention_exploitation',
+ 'i-production de l\'exercice':'production_exercice','achats de marchandises vendues':'achats_marchandises_vendues',
+ 'matieres premieres':'matieres_premieres','autres approvisionnements':'autres_approvisionnements',
+ 'variations des stocks':'variation_stocks','achats d\'etudes et de prestations de services':'achats_etudes_prestations',
+ 'autres consommations':'autres_consommations',
+ 'rabais, remises, ristournes obtenus sur achats':'rabais_remises_ristournes_obtenus_achats',
+ 'sous-traitance generale':'sous_traitance_generale','locations':'locations',
+ 'entretien, reparations et maintenance':'entretien_reparations','primes d\'assurances':'primes_assurances',
+ 'personnel exterieur a l\'entreprise':'personnel_exterieur',
+ 'remuneration d\'intermediaires et honoraires':'remuneration_intermediaires','publicite':'publicite',
+ 'deplacements, missions et receptions':'deplacements_missions','autres services':'autres_services',
+ 'rabais, remises, ristournes obtenus sur services exterieurs':'rabais_remises_ristournes_obtenus_services',
+ 'ii-consommations de l\'exercice':'consommations_exercice','iii-valeur ajoutee d\'exploitation':'valeur_ajoutee_exploitation',
+ 'charges de personnel':'charges_personnel','impots et taxes et versements assimiles':'impots_taxes_assimiles',
+ 'iv-excedent brut d\'exploitation':'excedent_brut_exploitation',
+ 'autres produits operationnels':'autres_produits_operationnels','autres charges operationnelles':'autres_charges_operationnelles',
+ 'dotations aux amortissements':'dotations_amortissements','provision':'provisions','pertes de valeur':'pertes_valeur',
+ 'reprise sur pertes de valeur et provisions':'reprises_pertes_valeur_provisions',
+ 'v-resultat operationnel':'resultat_operationnel','produits financiers':'produits_financiers',
+ 'charges financieres':'charges_financieres','vi-resultat financier':'resultat_financier',
+ 'vii-resultat ordinaire':'resultat_ordinaire','elements extraordinaires (produits)':'elements_extraordinaires_produits',
+ 'elements extraordinaires (charges)':'elements_extraordinaires_charges','viii-resultat extraordinaire':'resultat_extraordinaire',
+ 'impots exigibles sur resultats':'impots_exigibles_resultats',
+ 'impots differes (variations) sur resultats':'impots_differes_resultats',
+ 'ix - resultat net de l\'exercice':'resultat_net_exercice'}
+
+import openpyxl
+wb = openpyxl.load_workbook(MODELE_XLSX)
+ws = wb['3. TCR']
+new_map = {}
+for r in range(1, ws.max_row + 1):
+    lab = norm_key(' '.join(str(ws.cell(r, c).value or '') for c in (1, 2)))
+    key = LABEL_TCR.get(lab)
+    if key:
+        formule = any(isinstance(ws.cell(r, c).value, str) and str(ws.cell(r, c).value).startswith('=') for c in range(3, 7))
+        new_map[key] = (r, formule)
+MAP_LIGNES['TCR'] = new_map
+manquants = set(SCHEMAS['TCR']['postes']) - set(new_map)
+print('✅ TCR calibré :', len(new_map), 'lignes | non trouvées :', manquants or 'aucune')
