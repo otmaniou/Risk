@@ -1,125 +1,179 @@
 # ════════════════════════════════════════════════════════════
-# CELLULE A — LECTURE DES BLOCS + POSTES A ECRIRE | BILANS_V12
-# Objectif: definir iter_blocs / lire_bloc (manquants) et un
-#           _postes_a_ecrire qui ecarte les valeurs incertaines.
-# Entrees: doc JSON (pages -> donnees -> blocs) + controles_donnees.
-# Sorties: (fixes, dynamiques, ecartes, ignores).
-# Regles: valeur_certaine=False -> jamais ecrite, tracee dans ecartes;
-#         ligne hors modele -> ignores; formule jamais ecrite.
+# CELLULE 16bis — CORRECTIF ANNOTATIONS TCR + ARRONDIS | BILANS_V11A
+# Objectif: 1) sans LibreOffice, annoter aussi les totaux TCR en
+#           reconvertissant NET -> DEBIT/CREDIT (convention du modele :
+#           DEBIT = MAX(0;-NET), CREDIT = MAX(0;NET)) ;
+#           2) afficher en jaune les ecarts d'arrondi (+/- 1 DA).
+# Regles: aucune valeur ecrite ici ; uniquement commentaires + surbrillance.
 # ════════════════════════════════════════════════════════════
-def lire_bloc(bloc):
-    if isinstance(bloc, list):
-        sortie = []
-        for i, row in enumerate(bloc):
-            if not isinstance(row, dict):
+_JAUNE_FOND = PatternFill('solid', start_color='FFF2CC')
+
+def _comparer_et_annoter(chemin_calcule, wb, totaux, doc=None, tolerance=TOLERANCE_DA):
+    calc = None
+    if chemin_calcule is not None:
+        try:
+            calc = openpyxl.load_workbook(chemin_calcule, data_only=True)
+        except Exception:
+            calc = None
+
+    replis = {}
+    if calc is None and doc is not None:
+        for f in (doc.get('controles') or {}).get('formules', []):
+            replis[(f['tableau'], f['poste'], f['colonne'])] = f['valeur_recalculee']
+
+    anomalies, arrondis = [], []
+    for feuille, coord, tab, rc, col, extraite in totaux:
+        recalc = None
+        if calc is not None:
+            v = calc[feuille][coord].value
+            if v is None:
                 continue
-            vals = {k: v for k, v in row.items() if k != 'libelle_imprime'}
-            sortie.append(('ligne_' + str(i).zfill(3), vals, row.get('libelle_imprime')))
-        return sortie
-    if isinstance(bloc, dict):
-        if isinstance(bloc.get('lignes'), list):
-            sortie = []
-            for i, lg in enumerate(bloc['lignes']):
-                if not isinstance(lg, dict):
+            recalc = float(v)
+        else:
+            if (tab, rc, col) in replis:
+                recalc = float(replis[(tab, rc, col)])
+            elif tab == 'TCR' and col in ('n_debit', 'n_credit', 'n1_debit', 'n1_credit'):
+                cle_net = 'NET' if col in ('n_debit', 'n_credit') else 'NET_N1'
+                if (tab, rc, cle_net) not in replis:
                     continue
-                cle = lg.get('row_code') or ('ligne_' + str(i).zfill(3))
-                sortie.append((cle, lg.get('valeurs') or {}, lg.get('libelle_imprime')))
-            return sortie
-        return [(rc, vals, None) for rc, vals in bloc.items() if isinstance(vals, dict)]
-    return []
-
-def iter_blocs(doc):
-    for page in doc.get('pages', []):
-        for tab, bloc in (page.get('donnees') or {}).items():
-            if tab in ('brut', 'AUTRE') or bloc in (None, {}, []):
-                continue
-            yield page, tab, bloc
-
-def _postes_a_ecrire(doc):
-    fixes, dynamiques, ecartes, ignores = [], {}, [], []
-    for page, tab, bloc in iter_blocs(doc):
-        cert_tab = (page.get('controles_donnees') or {}).get(tab) or {}
-        for cle, vals, libelle in lire_bloc(bloc):
-            vals = vals or {}
-            ctrl_ligne = cert_tab.get(cle) or {}
-            est_libre = str(cle).startswith('ligne_')
-            if not est_libre and tab in MAP_LIGNES and cle in MAP_LIGNES[tab]:
-                for col, v in vals.items():
-                    if v is None:
-                        continue
-                    c = ctrl_ligne.get(col)
-                    if c and c.get('valeur_certaine') is False:
-                        ecartes.append((tab, cle, col, v, c.get('ecart')))
-                        continue
-                    fixes.append((tab, cle, col, v))
-            elif tab in MAP_DYNAMIQUES:
-                if any(v is not None for v in vals.values()) or libelle:
-                    dynamiques.setdefault(tab, []).append({'libelle': libelle, 'valeurs': vals})
+                net = float(replis[(tab, rc, cle_net)])
+                recalc = max(0.0, -net) if col in ('n_debit', 'n1_debit') else max(0.0, net)
             else:
-                for col, v in vals.items():
-                    if v is not None:
-                        ignores.append((tab, cle, col))
-    return fixes, dynamiques, ecartes, ignores
+                continue
 
-print('✅ iter_blocs / lire_bloc / _postes_a_ecrire OK')
+        ecart = extraite - recalc
+        if abs(ecart) <= 1e-9:
+            continue
+        c = wb[feuille][coord]
+        if abs(ecart) <= tolerance:
+            c.fill = _JAUNE_FOND
+            c.comment = Comment(
+                'ECART D ARRONDI (+/- 1 DA)\n--------------------\n'
+                'Valeur lue sur la liasse : ' + format(extraite, ',.2f') + '\n'
+                'Valeur recalculee        : ' + format(recalc, ',.2f') + '\n'
+                'Ecart                    : ' + format(ecart, ',.2f') + '\n\n'
+                'Simple arrondi : aucune correction necessaire.',
+                'Controle extraction')
+            c.comment.width = 320; c.comment.height = 170
+            arrondis.append({'tableau': tab, 'poste': rc, 'colonne': col,
+                             'feuille': feuille, 'cellule': coord,
+                             'valeur_extraite': extraite, 'valeur_recalculee': recalc,
+                             'ecart': round(ecart, 2)})
+            continue
+        c.border = _ROUGE; c.fill = _ROUGE_FOND; c.font = _ROUGE_TEXTE
+        c.comment = Comment(
+            'INCOHERENCE DETECTEE\n--------------------\n'
+            'Valeur lue sur la liasse : ' + format(extraite, ',.2f') + '\n'
+            'Valeur recalculee        : ' + format(recalc, ',.2f') + '\n'
+            'Ecart                    : ' + format(ecart, ',.2f') + '\n\n'
+            'La cellule affiche la valeur RECALCULEE.\n'
+            'Causes possibles : total mal lu a l OCR, ligne de detail\n'
+            'manquante, ou liasse deposee elle-meme incoherente.',
+            'Controle extraction')
+        c.comment.width = 340; c.comment.height = 190
+        anomalies.append({'tableau': tab, 'poste': rc, 'colonne': col,
+                          'feuille': feuille, 'cellule': coord,
+                          'valeur_extraite': extraite, 'valeur_recalculee': recalc,
+                          'ecart': round(ecart, 2)})
+    return anomalies, arrondis
 
 
+def _feuille_archive(wb, doc, anomalies, arrondis, ignores):
+    if '0. Données extraites' in wb.sheetnames:
+        del wb['0. Données extraites']
+    ws = wb.create_sheet('0. Données extraites', 0)
+    ident = doc.get('identite') or {}
+    synth = (doc.get('controles') or {}).get('synthese', {})
+    ws['A1'] = 'DONNEES EXTRAITES DE LA LIASSE — PIECE DE REFERENCE'
+    ws['A1'].font = Font(bold=True, size=14)
+    ws['A2'] = ('Valeurs telles que lues sur la liasse deposee. Les feuilles '
+                'suivantes sont une copie de travail dont les totaux sont recalcules.')
+    ws['A2'].font = Font(italic=True, size=9)
+    infos = [('Fichier source', doc.get('document', {}).get('fichier_source')),
+             ('Date extraction', doc.get('document', {}).get('date_extraction')),
+             ('Entreprise', ident.get('entreprise')), ('NIF (15 positions)', ident.get('nif_15')),
+             ('Exercice clos', ident.get('exercice_clos')), ('Exercice N', ident.get('annee_n')),
+             ('Exercice N-1', ident.get('annee_n1')),
+             ('Dossier homogene', 'OUI' if ident.get('dossier_homogene') else 'NON'),
+             ('Formules en ecart', synth.get('formules_en_ecart')),
+             ('Controles en ecart', synth.get('controles_en_ecart')),
+             ('Ecarts critiques', synth.get('ecarts_critiques')),
+             ('Arbitrage requis', 'OUI' if synth.get('arbitrage_requis') else 'NON')]
+    r = 4
+    for lib, val in infos:
+        ws.cell(r, 1, lib).font = Font(bold=True); ws.cell(r, 2, val); r += 1
+    r += 1; ws.cell(r, 1, 'ALERTES D IDENTITE').font = Font(bold=True, size=12); r += 1
+    for a in ident.get('alertes', []):
+        ws.cell(r, 1, a['gravite'].upper()).font = Font(bold=True, color='9C0006')
+        ws.cell(r, 2, a['message']); r += 1
+    if not ident.get('alertes'):
+        ws.cell(r, 2, 'Aucune — toutes les pages designent le meme dossier.'); r += 1
+    r += 1; ws.cell(r, 1, 'ECARTS SIGNIFICATIFS DECLARE / RECALCULE').font = Font(bold=True, size=12); r += 1
+    for i, h in enumerate(['Tableau', 'Poste', 'Colonne', 'Cellule', 'Valeur extraite', 'Valeur recalculee', 'Ecart'], 1):
+        c = ws.cell(r, i, h); c.font = Font(bold=True, color='FFFFFF')
+        c.fill = PatternFill('solid', start_color='1F4E79')
+    r += 1
+    for a in anomalies:
+        ws.cell(r, 1, a['tableau']); ws.cell(r, 2, a['poste']); ws.cell(r, 3, a['colonne'])
+        ws.cell(r, 4, a['feuille'] + '!' + a['cellule'])
+        for i, cle in enumerate(['valeur_extraite', 'valeur_recalculee', 'ecart'], 5):
+            cc = ws.cell(r, i, a[cle]); cc.number_format = '#,##0.00'
+        r += 1
+    if not anomalies:
+        ws.cell(r, 2, 'Aucun ecart au-dela de la tolerance.'); r += 1
+    r += 1; ws.cell(r, 1, 'ECARTS D ARRONDI (+/- 1 DA)').font = Font(bold=True, size=12); r += 1
+    for a in arrondis:
+        ws.cell(r, 1, a['tableau']); ws.cell(r, 2, a['poste'])
+        ws.cell(r, 3, a['feuille'] + '!' + a['cellule']); ws.cell(r, 4, a['ecart']); r += 1
+    if not arrondis:
+        ws.cell(r, 2, 'Aucun.'); r += 1
+    if ignores:
+        r += 1; ws.cell(r, 1, 'POSTES NON REPORTES').font = Font(bold=True, size=12); r += 1
+        for tab, rc, col in ignores:
+            ws.cell(r, 1, tab); ws.cell(r, 2, rc); ws.cell(r, 3, col); r += 1
+    for col, w in zip('ABCDEFG', [26, 46, 20, 24, 20, 20, 16]):
+        ws.column_dimensions[col].width = w
+    return ws
 
 
+def transposer(doc, sortie_xlsx, modele=None, tolerance=TOLERANCE_DA):
+    modele = Path(modele or MODELE_XLSX); sortie = Path(sortie_xlsx)
+    tmp = sortie.with_suffix('.tmp.xlsx')
+    shutil.copy(modele, tmp)
+    wb = openpyxl.load_workbook(tmp)
+    for ws in wb.worksheets:
+        ws.protection.sheet = False
+    ecrits, totaux, ignores, par_tableau = _ecrire_valeurs(wb, doc)
+    wb.save(tmp)
+    recalcule = False
+    if RECALC_DISPONIBLE:
+        try:
+            subprocess.run([sys.executable, str(RECALC_TOOL), str(tmp), '180'],
+                           capture_output=True, timeout=300)
+            recalcule = True
+        except Exception as e:
+            log('Recalcul LibreOffice indisponible : ' + str(e))
+    else:
+        log('LibreOffice absent — detection des ecarts par le moteur Python.')
+    wb = openpyxl.load_workbook(tmp)
+    anomalies, arrondis = _comparer_et_annoter(tmp if recalcule else None, wb, totaux, doc, tolerance)
+    _feuille_archive(wb, doc, anomalies, arrondis, ignores)
+    n_libres, n_verrous = _proteger_formules(wb)
+    wb.save(sortie); tmp.unlink(missing_ok=True)
+    if RECALC_DISPONIBLE:
+        try:
+            subprocess.run([sys.executable, str(RECALC_TOOL), str(sortie), '180'],
+                           capture_output=True, timeout=300)
+        except Exception as e:
+            log('Recalcul final indisponible : ' + str(e))
+    doc.setdefault('controles', {})['transposition'] = {
+        'classeur': sortie.name, 'valeurs_ecrites': ecrits,
+        'totaux_compares': len(totaux), 'ecarts_signales': len(anomalies),
+        'ecarts_arrondis': len(arrondis), 'postes_non_reportes': len(ignores),
+        'cellules_verrouillees': n_verrous, 'cellules_saisissables': n_libres,
+        'recalcul_libreoffice': RECALC_DISPONIBLE,
+        'valeurs_par_tableau': par_tableau,
+        'detail_ecarts': anomalies, 'detail_arrondis': arrondis}
+    return doc['controles']['transposition']
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ════════════════════════════════════════════════════════════
-# CELLULE 18 — TESTS HORS MODELE V12 (syntaxe corrigee)
-# ════════════════════════════════════════════════════════════
-_ok = 0; _tot = 0
-def _t(lib, obt, att):
-    global _ok, _tot
-    _tot += 1; bon = obt == att; _ok += bon
-    print(('✅' if bon else '❌') + ' ' + lib + ('' if bon else ' obtenu=' + repr(obt) + ' attendu=' + repr(att)))
-
-doc_test = {
-    'pages': [
-        {
-            'classification': {'types': ['ACTIF']},
-            'entete_page': {},
-            'donnees': {
-                'ACTIF': {
-                    'batiments': {'montant_brut': 100.0, 'amortissements_provisions_pertes': 10.0,
-                                  'net_n': 90.0, 'net_n1': 80.0},
-                    'ligne_inconnue': {'montant_brut': 5.0},
-                },
-            },
-            'controles_donnees': {
-                'ACTIF': {
-                    'batiments': {
-                        'net_n': {'valeur_certaine': False, 'ecart': 12.0},
-                        'montant_brut': {'valeur_certaine': True},
-                    },
-                },
-            },
-        },
-    ],
-}
-
-fx, dy, ec, ig = _postes_a_ecrire(doc_test)
-_t('valeur incertaine ecartee', any(e[2] == 'net_n' for e in ec), True)
-_t('valeur certaine conservee', any(x[1] == 'batiments' and x[2] == 'montant_brut' for x in fx), True)
-_t('ligne hors modele ignoree', any(i[1] == 'ligne_inconnue' for i in ig), True)
-_t('total (formule) non ecrit', not any(x[1] == 'total_general_actif' for x in fx), True)
-print(str(_ok) + '/' + str(_tot) + ' tests passes')
+print('✅ Correctif 16bis chargé — relancez la cellule 17')
