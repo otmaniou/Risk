@@ -1,18 +1,49 @@
 python3 << 'PYEOF'
+import shutil, py_compile, re
+
 f = "/opt/conda/envs/DWS-GPU/lib/python3.11/site-packages/flashinfer/comm/fd_exchange.py"
+
+# 1. Restaurer le backup original (annuler mon patch __future__ raté)
+shutil.copy(f + ".bak", f)
+print("Backup restauré")
+
 lines = open(f, encoding="utf-8").read().split("\n")
 
-# Où est __future__ actuellement ?
+# 2. Patcher UNIQUEMENT les lignes contenant array.array[...]
+#    Remplacer array.array[int] par 'array.array' (annotation en string = jamais évaluée)
+n_patched = 0
 for i, ln in enumerate(lines):
-    if "__future__" in ln:
-        print(f"__future__ est à la ligne {i+1}: {ln!r}")
-
-print("--- 20 premières lignes ---")
-for i, ln in enumerate(lines[:20], 1):
-    print(f"{i:3} | {ln}")
-
-print("--- lignes contenant array.array[ ---")
-for i, ln in enumerate(lines, 1):
     if "array.array[" in ln:
-        print(f"{i:3} | {ln}")
+        print(f"AVANT {i+1}: {ln}")
+        # remplace array.array[...] par une string littérale
+        new = re.sub(r"array\.array\[[^\]]*\]", "'array.array'", ln)
+        lines[i] = new
+        print(f"APRÈS {i+1}: {new}")
+        n_patched += 1
+
+open(f, "w", encoding="utf-8").write("\n".join(lines))
+print(f"\n{n_patched} ligne(s) patchée(s)")
+
+# 3. Vérifier compilation
+try:
+    py_compile.compile(f, doraise=True)
+    print("Compilation OK ✅")
+except Exception as e:
+    print("ÉCHEC, restauration:", e)
+    shutil.copy(f + ".bak", f)
+    raise SystemExit(1)
+
+# 4. Tester l'import réel
+try:
+    import flashinfer.comm.fd_exchange
+    print("Import flashinfer.comm.fd_exchange OK ✅✅")
+except Exception as e:
+    print(f"Import échoue: {type(e).__name__}: {str(e)[:200]}")
+    # chercher d'autres fichiers avec array.array[ ou list[ dans annotations 3.12
+    import glob
+    base = "/opt/conda/envs/DWS-GPU/lib/python3.11/site-packages/flashinfer"
+    for g in glob.glob(base + "/**/*.py", recursive=True):
+        t = open(g, encoding="utf-8", errors="ignore").read()
+        if "array.array[" in t:
+            print("Encore:", g)
 PYEOF
