@@ -1,52 +1,48 @@
-import subprocess, sys, platform
+python3 -c "
+import sys, subprocess, os, glob
 
-def sh(cmd, shell=True, timeout=30):
-    try:
-        r = subprocess.run(cmd, shell=shell, capture_output=True, text=True, timeout=timeout)
-        return (r.stdout + r.stderr).strip() or "(vide)"
-    except FileNotFoundError:
-        return "ABSENT"
-    except Exception as e:
-        return f"ERREUR: {e}"
+print('=== PYTHON ===')
+print(sys.version)
 
-print("=== SYSTEME ===")
-print("OS      :", platform.platform())
-print("Arch    :", platform.machine())
-print("Python  :", sys.version.split()[0])
-print("Exec    :", sys.executable)
+print('\n=== GPU (nvidia-smi) ===')
+subprocess.run(['nvidia-smi', '--query-gpu=name,driver_version,memory.total,compute_cap', '--format=csv,noheader'])
 
-print("\n=== GLIBC (doit etre >= 2.28) ===")
-print(sh("ldd --version | head -1"))
+print('\n=== CUDA VERSION ===')
+for f in glob.glob('/usr/local/cuda*/version*.txt') + glob.glob('/usr/local/cuda*/version.json'):
+    print(f'-- {f}')
+    subprocess.run(['cat', f])
+r = subprocess.run('ls /usr/local/ | grep cuda', shell=True, capture_output=True, text=True)
+print('cuda dirs:', r.stdout.strip())
 
-print("\n=== GPU / DRIVER ===")
-print(sh("nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader"))
+print('\n=== LIBCUDART (sans nvcc) ===')
+subprocess.run('ldconfig -p | grep libcudart', shell=True)
 
-print("=== CUDA RUNTIME (le point decisif) ===")
-print("Toolkit dirs :", sh("ls -d /usr/local/cuda* 2>/dev/null"))
-print("libcudart trouves :")
-print(sh('find / -name "libcudart.so*" 2>/dev/null | head -10'))
-print("nvcc :", sh("nvcc --version 2>&1 | tail -1"))
-
-print("\n=== TORCH ===")
+print('\n=== TORCH ===')
 try:
     import torch
-    print("torch      :", torch.__version__, "| cuda build:", torch.version.cuda)
-    print("available  :", torch.cuda.is_available())
+    print('torch:', torch.__version__)
+    print('torch.cuda:', torch.version.cuda)
+    print('GPU dispo:', torch.cuda.is_available())
     if torch.cuda.is_available():
-        print("capability :", torch.cuda.get_device_capability(0), "(9,0)=H100")
-        print("device     :", torch.cuda.get_device_name(0))
-except Exception as e:
-    print("torch:", e)
+        print('GPU name:', torch.cuda.get_device_name(0))
+        print('capability:', torch.cuda.get_device_capability(0))
+        print('VRAM total:', round(torch.cuda.get_device_properties(0).total_memory/1e9,1), 'GB')
+except ImportError:
+    print('torch non installe')
 
-print("\n=== PACKAGES CLES ===")
-print(sh('pip list 2>/dev/null | grep -Ei "^(torch|transformers|vllm|accelerate|kernels|xformers|flashinfer|numpy|openpyxl|pymupdf|pillow|triton|ray)"'))
+print('\n=== TRANSFORMERS ===')
+try:
+    import transformers; print(transformers.__version__)
+except: print('non installe')
 
-print("=== ACCES RESEAU ===")
-for url in ['https://pypi.org', 'https://download.pytorch.org',
-            'https://github.com', 'https://objects.githubusercontent.com',
-            'https://wheels.vllm.ai']:
-    code = sh(f'curl -s -o /dev/null -w "%{{http_code}}" --max-time 8 {url}')
-    print(f"  {url:42s} -> {code}")
+print('\n=== UV / PIP ===')
+subprocess.run('which uv && uv --version || echo uv absent', shell=True)
+subprocess.run(['pip', '--version'])
 
-print("\n=== ESPACE DISQUE ===")
-print(sh("df -h /home /tmp 2>/dev/null | grep -v '^Filesystem'"))
+print('\n=== GLIBC ===')
+r = subprocess.run('ldd --version | head -1', shell=True, capture_output=True, text=True)
+print(r.stdout.strip())
+
+print('\n=== OS ===')
+subprocess.run('cat /etc/os-release | grep -E \"^(NAME|VERSION)=\"', shell=True)
+" 2>&1
