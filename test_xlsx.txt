@@ -1,30 +1,55 @@
-# 1. Confirmer que flashinfer est bien la cause
-python3 -c "
-import flashinfer.comm.fd_exchange
-print('flashinfer OK')
-" 2>&1 | tail -5
+python3 << 'PYEOF'
+import re, py_compile, shutil, sys
 
-echo '===================='
+f = "/opt/conda/envs/DWS-GPU/lib/python3.11/site-packages/flashinfer/comm/fd_exchange.py"
 
-# 2. Version de flashinfer installée
-pip show flashinfer flashinfer-python 2>/dev/null | grep -E 'Name|Version'
+# 1. Backup
+shutil.copy(f, f + ".bak")
 
-echo '===================='
+# 2. Lire
+src = open(f, encoding="utf-8").read()
 
-# 3. Backends d'attention réellement compilés dans ce vllm
-python3 -c "
-import vllm, glob, os
-d = os.path.dirname(vllm.__file__)
-sos = glob.glob(d + '/**/*_C*.so', recursive=True)
-print('.so compilés:', [os.path.basename(s) for s in sos][:15])
-"
+# 3. Déjà patché ?
+if "from __future__ import annotations" in src.split("\n\n")[0] or \
+   src.lstrip().startswith("from __future__ import annotations"):
+    print("Déjà patché ✅")
+else:
+    lines = src.split("\n")
+    # Insérer après le shebang/docstring éventuel, avant le 1er import
+    insert_at = 0
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        if s.startswith("#") or s == "" or s.startswith('"""') or s.startswith("'''"):
+            continue
+        insert_at = i
+        break
+    lines.insert(insert_at, "from __future__ import annotations")
+    open(f, "w", encoding="utf-8").write("\n".join(lines))
+    print(f"Ligne insérée à la position {insert_at} ✅")
 
-echo '===================='
+# 4. Vérifier que le fichier compile
+try:
+    py_compile.compile(f, doraise=True)
+    print("Compilation Python OK ✅")
+except Exception as e:
+    print("ÉCHEC compilation, restauration backup ❌:", e)
+    shutil.copy(f + ".bak", f)
+    sys.exit(1)
 
-# 4. flashinfer est-il une DEPENDANCE dure ou optionnelle ?
-python3 -c "
-import importlib.metadata as m
-reqs = m.requires('vllm') or []
-fi = [r for r in reqs if 'flashinfer' in r.lower()]
-print('flashinfer requis par vllm:', fi if fi else 'NON (optionnel)')
-"
+# 5. Vérifier que l'import qui plantait passe maintenant
+try:
+    import flashinfer.comm.fd_exchange
+    print("Import flashinfer.comm.fd_exchange OK ✅")
+except Exception as e:
+    print("Import échoue encore:", type(e).__name__, str(e)[:200])
+    # Chercher d'autres fichiers flashinfer avec le même problème
+    import glob
+    base = "/opt/conda/envs/DWS-GPU/lib/python3.11/site-packages/flashinfer"
+    hits = []
+    for g in glob.glob(base + "/**/*.py", recursive=True):
+        t = open(g, encoding="utf-8", errors="ignore").read()
+        if re.search(r"array\.array\[", t) and "from __future__ import annotations" not in t[:200]:
+            hits.append(g)
+    if hits:
+        print("Autres fichiers à patcher:", hits)
+PYEOF
