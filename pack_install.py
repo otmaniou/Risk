@@ -58,3 +58,24 @@ print('OK ✅' if torch.cuda.is_available() else 'ERREUR GPU ❌')
 uv pip install vllm \
   --extra-index-url https://wheels.vllm.ai/nightly \
   --torch-backend cu130
+
+
+
+
+
+
+
+
+
+python3 -c "
+import torch, vllm
+print('vllm :', vllm.__version__)
+print('torch:', torch.__version__, '| cuda:', torch.version.cuda)
+print('GPU  :', torch.cuda.get_device_name(0))
+print('VRAM :', round(torch.cuda.get_device_properties(0).total_memory/1e9,1), 'GB')
+print('OK ✅' if torch.cuda.is_available() else 'ERREUR GPU ❌')
+
+# Vérifier que vllm voit bien le GPU
+from vllm import LLM
+print('vllm.LLM importable ✅')
+"
