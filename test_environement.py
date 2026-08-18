@@ -1,47 +1,52 @@
 import subprocess, sys, platform
-print("=== SYSTEME ===")
-print("OS       :", platform.platform())
-print("Python   :", sys.version.split()[0])
-print("Exec     :", sys.executable)
 
-print("\n=== GLIBC ===")
-print(subprocess.run(['ldd','--version'], capture_output=True, text=True).stdout.split('\n')[0])
+def sh(cmd, shell=True, timeout=30):
+    try:
+        r = subprocess.run(cmd, shell=shell, capture_output=True, text=True, timeout=timeout)
+        return (r.stdout + r.stderr).strip() or "(vide)"
+    except FileNotFoundError:
+        return "ABSENT"
+    except Exception as e:
+        return f"ERREUR: {e}"
+
+print("=== SYSTEME ===")
+print("OS      :", platform.platform())
+print("Arch    :", platform.machine())
+print("Python  :", sys.version.split()[0])
+print("Exec    :", sys.executable)
+
+print("\n=== GLIBC (doit etre >= 2.28) ===")
+print(sh("ldd --version | head -1"))
 
 print("\n=== GPU / DRIVER ===")
-print(subprocess.run(['nvidia-smi','--query-gpu=name,driver_version,memory.total',
-                      '--format=csv,noheader'], capture_output=True, text=True).stdout)
+print(sh("nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader"))
 
-print("=== CUDA TOOLKIT ===")
-r = subprocess.run(['nvcc','--version'], capture_output=True, text=True)
-print(r.stdout.strip() if r.returncode==0 else "nvcc absent")
-print(subprocess.run('ls -d /usr/local/cuda* 2>/dev/null', shell=True,
-                     capture_output=True, text=True).stdout)
-print("libcudart dispo :")
-print(subprocess.run('find / -name "libcudart.so.*" 2>/dev/null | head -5',
-                     shell=True, capture_output=True, text=True).stdout)
+print("=== CUDA RUNTIME (le point decisif) ===")
+print("Toolkit dirs :", sh("ls -d /usr/local/cuda* 2>/dev/null"))
+print("libcudart trouves :")
+print(sh('find / -name "libcudart.so*" 2>/dev/null | head -10'))
+print("nvcc :", sh("nvcc --version 2>&1 | tail -1"))
 
-print("=== TORCH ===")
+print("\n=== TORCH ===")
 try:
     import torch
-    print("torch    :", torch.__version__, "| cuda build:", torch.version.cuda)
-    print("available:", torch.cuda.is_available())
+    print("torch      :", torch.__version__, "| cuda build:", torch.version.cuda)
+    print("available  :", torch.cuda.is_available())
     if torch.cuda.is_available():
-        print("capability:", torch.cuda.get_device_capability(0))
+        print("capability :", torch.cuda.get_device_capability(0), "(9,0)=H100")
+        print("device     :", torch.cuda.get_device_name(0))
 except Exception as e:
     print("torch:", e)
 
 print("\n=== PACKAGES CLES ===")
-print(subprocess.run(
-    'pip list 2>/dev/null | grep -Ei "^(torch|transformers|vllm|accelerate|kernels|xformers|flashinfer|numpy|openpyxl|pymupdf|pillow|triton)"',
-    shell=True, capture_output=True, text=True).stdout)
+print(sh('pip list 2>/dev/null | grep -Ei "^(torch|transformers|vllm|accelerate|kernels|xformers|flashinfer|numpy|openpyxl|pymupdf|pillow|triton|ray)"'))
 
 print("=== ACCES RESEAU ===")
-for url in ['https://pypi.org', 'https://download.pytorch.org', 'https://github.com', 'https://wheels.vllm.ai']:
-    r = subprocess.run(['curl','-s','-o','/dev/null','-w','%{http_code}','--max-time','8',url],
-                       capture_output=True, text=True)
-    print(f"  {url:38s} -> {r.stdout}")
+for url in ['https://pypi.org', 'https://download.pytorch.org',
+            'https://github.com', 'https://objects.githubusercontent.com',
+            'https://wheels.vllm.ai']:
+    code = sh(f'curl -s -o /dev/null -w "%{{http_code}}" --max-time 8 {url}')
+    print(f"  {url:42s} -> {code}")
 
-print("\n=== DROITS ===")
-print("write venv :", subprocess.run('touch $(python -c "import site;print(site.getsitepackages()[0])")/.t 2>&1 && echo OK || echo READONLY',
-                                     shell=True, capture_output=True, text=True).stdout.strip())
-print("disk /home :", subprocess.run('df -h /home | tail -1', shell=True, capture_output=True, text=True).stdout.strip())
+print("\n=== ESPACE DISQUE ===")
+print(sh("df -h /home /tmp 2>/dev/null | grep -v '^Filesystem'"))
