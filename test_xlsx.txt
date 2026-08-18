@@ -1,55 +1,18 @@
 python3 << 'PYEOF'
-import re, py_compile, shutil, sys
-
 f = "/opt/conda/envs/DWS-GPU/lib/python3.11/site-packages/flashinfer/comm/fd_exchange.py"
+lines = open(f, encoding="utf-8").read().split("\n")
 
-# 1. Backup
-shutil.copy(f, f + ".bak")
+# Où est __future__ actuellement ?
+for i, ln in enumerate(lines):
+    if "__future__" in ln:
+        print(f"__future__ est à la ligne {i+1}: {ln!r}")
 
-# 2. Lire
-src = open(f, encoding="utf-8").read()
+print("--- 20 premières lignes ---")
+for i, ln in enumerate(lines[:20], 1):
+    print(f"{i:3} | {ln}")
 
-# 3. Déjà patché ?
-if "from __future__ import annotations" in src.split("\n\n")[0] or \
-   src.lstrip().startswith("from __future__ import annotations"):
-    print("Déjà patché ✅")
-else:
-    lines = src.split("\n")
-    # Insérer après le shebang/docstring éventuel, avant le 1er import
-    insert_at = 0
-    for i, ln in enumerate(lines):
-        s = ln.strip()
-        if s.startswith("#") or s == "" or s.startswith('"""') or s.startswith("'''"):
-            continue
-        insert_at = i
-        break
-    lines.insert(insert_at, "from __future__ import annotations")
-    open(f, "w", encoding="utf-8").write("\n".join(lines))
-    print(f"Ligne insérée à la position {insert_at} ✅")
-
-# 4. Vérifier que le fichier compile
-try:
-    py_compile.compile(f, doraise=True)
-    print("Compilation Python OK ✅")
-except Exception as e:
-    print("ÉCHEC compilation, restauration backup ❌:", e)
-    shutil.copy(f + ".bak", f)
-    sys.exit(1)
-
-# 5. Vérifier que l'import qui plantait passe maintenant
-try:
-    import flashinfer.comm.fd_exchange
-    print("Import flashinfer.comm.fd_exchange OK ✅")
-except Exception as e:
-    print("Import échoue encore:", type(e).__name__, str(e)[:200])
-    # Chercher d'autres fichiers flashinfer avec le même problème
-    import glob
-    base = "/opt/conda/envs/DWS-GPU/lib/python3.11/site-packages/flashinfer"
-    hits = []
-    for g in glob.glob(base + "/**/*.py", recursive=True):
-        t = open(g, encoding="utf-8", errors="ignore").read()
-        if re.search(r"array\.array\[", t) and "from __future__ import annotations" not in t[:200]:
-            hits.append(g)
-    if hits:
-        print("Autres fichiers à patcher:", hits)
+print("--- lignes contenant array.array[ ---")
+for i, ln in enumerate(lines, 1):
+    if "array.array[" in ln:
+        print(f"{i:3} | {ln}")
 PYEOF
