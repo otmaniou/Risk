@@ -1,0 +1,171 @@
+#!/bin/bash
+
+echo "=================================================="
+echo "      YARISK - DIAGNOSTIC DEPLOIEMENT COMPLET"
+echo "=================================================="
+echo
+
+echo "=== 1. DATE / USER / REPERTOIRE ==="
+date
+whoami
+pwd
+echo
+
+echo "=== 2. VARIABLES DOMINO ==="
+echo "DOMINO_WORKING_DIR=$DOMINO_WORKING_DIR"
+echo "DOMINO_PROJECT_NAME=$DOMINO_PROJECT_NAME"
+echo "DOMINO_PROJECT_OWNER=$DOMINO_PROJECT_OWNER"
+echo "DOMINO_RUN_ID=$DOMINO_RUN_ID"
+echo
+
+echo "=== 3. PATH ==="
+echo "$PATH"
+echo
+
+echo "=== 4. PYTHON SYSTEME ==="
+which python || true
+which python3 || true
+/opt/conda/bin/python --version || true
+/opt/conda/bin/python3 --version || true
+echo
+
+echo "=== 5. ENVIRONNEMENTS CONDA ==="
+ls -la /opt/conda/envs/ || true
+echo
+
+echo "=== 6. TEST DWS-CPU ==="
+
+if [ -x /opt/conda/envs/DWS-CPU/bin/python ]; then
+
+    echo "DWS-CPU : TROUVE"
+    echo
+
+    echo "--- Python DWS-CPU ---"
+    /opt/conda/envs/DWS-CPU/bin/python --version || true
+
+    echo
+    echo "--- chemin Python ---"
+    /opt/conda/envs/DWS-CPU/bin/python -c \
+    "import sys; print(sys.executable); print(sys.version)" || true
+
+    echo
+    echo "--- pip ---"
+    /opt/conda/envs/DWS-CPU/bin/python -m pip --version || true
+
+    echo
+    echo "--- STREAMLIT ---"
+    /opt/conda/envs/DWS-CPU/bin/python -m pip show streamlit || true
+
+    echo
+    echo "--- PANDAS ---"
+    /opt/conda/envs/DWS-CPU/bin/python -m pip show pandas || true
+
+    echo
+    echo "--- NUMPY ---"
+    /opt/conda/envs/DWS-CPU/bin/python -m pip show numpy || true
+
+    echo
+    echo "--- OPENPYXL ---"
+    /opt/conda/envs/DWS-CPU/bin/python -m pip show openpyxl || true
+
+    echo
+    echo "--- PYMUPDF ---"
+    /opt/conda/envs/DWS-CPU/bin/python -m pip show PyMuPDF || true
+
+    echo
+    echo "--- PILLOW ---"
+    /opt/conda/envs/DWS-CPU/bin/python -m pip show pillow || true
+
+else
+
+    echo "ERREUR : /opt/conda/envs/DWS-CPU/bin/python INTROUVABLE"
+
+fi
+
+echo
+echo "=== 7. IMPORTS PYTHON DWS-CPU ==="
+
+if [ -x /opt/conda/envs/DWS-CPU/bin/python ]; then
+
+/opt/conda/envs/DWS-CPU/bin/python - <<'PYTHONTEST'
+
+import sys
+
+print("Python :", sys.executable)
+print()
+
+modules = [
+    ("streamlit", "streamlit"),
+    ("pandas", "pandas"),
+    ("numpy", "numpy"),
+    ("openpyxl", "openpyxl"),
+    ("fitz / PyMuPDF", "fitz"),
+    ("PIL / Pillow", "PIL"),
+]
+
+for name, module in modules:
+    try:
+        m = __import__(module)
+        version = getattr(m, "__version__", "version non disponible")
+        print(f"[OK] {name} : {version}")
+    except Exception as e:
+        print(f"[ERREUR] {name} : {type(e).__name__}: {e}")
+
+PYTHONTEST
+
+fi
+
+echo
+echo "=== 8. DOSSIER YARISK ==="
+
+cd /mnt/YARISK_DEMO/V1 || {
+    echo "ERREUR : impossible d'acceder a /mnt/YARISK_DEMO/V1"
+    exit 1
+}
+
+echo "PWD=$(pwd)"
+echo
+ls -lah
+
+echo
+echo "=== 9. FICHIERS IMPORTANTS ==="
+
+for f in \
+    app.sh \
+    streamlit_app.py \
+    app.py \
+    requirements.txt
+do
+    if [ -f "$f" ]; then
+        echo "[OK] $f existe"
+        ls -lh "$f"
+    else
+        echo "[ABSENT] $f"
+    fi
+done
+
+echo
+echo "=== 10. COMPILATION STREAMLIT_APP.PY ==="
+
+if [ -f streamlit_app.py ] && [ -x /opt/conda/envs/DWS-CPU/bin/python ]; then
+
+    /opt/conda/envs/DWS-CPU/bin/python -m py_compile streamlit_app.py
+
+    if [ $? -eq 0 ]; then
+        echo "[OK] streamlit_app.py compile correctement"
+    else
+        echo "[ERREUR] streamlit_app.py contient une erreur Python"
+    fi
+
+else
+    echo "[NON TESTE] streamlit_app.py ou Python DWS-CPU absent"
+fi
+
+echo
+echo "=================================================="
+echo "          FIN DIAGNOSTIC YARISK"
+echo "=================================================="
+
+# Maintient temporairement le conteneur actif
+# pour permettre de lire tous les logs.
+sleep 120
