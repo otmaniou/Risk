@@ -72,3 +72,29 @@ exec python -m streamlit run app.py \
   --server.address=0.0.0.0 \
   --server.port=8888 \
   --server.headless=true
+
+
+
+
+
+
+
+
+#!/bin/bash
+
+echo "=== YARISK DIAGNOSTIC ==="
+echo "PATH=$PATH"
+
+echo "=== PYTHON ==="
+which python || true
+which python3 || true
+ls -l /opt/conda/bin/python* 2>/dev/null || true
+ls -la /opt/conda/envs/ 2>/dev/null || true
+
+echo "=== STREAMLIT ==="
+python -m pip show streamlit 2>/dev/null || true
+python3 -m pip show streamlit 2>/dev/null || true
+
+echo "=== END DIAGNOSTIC ==="
+
+sleep 30
