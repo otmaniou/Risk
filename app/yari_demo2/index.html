@@ -1,0 +1,53 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--deep:#00573F;--green:#00915A;--section:#C6E5D4;--group:#EAF5EF;--input:#FFF8E1;--line:#DDE9E2;--danger:#B5121B;--panel:#f8fbf9}
+*{box-sizing:border-box}body{font:13px system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#163327;background:#fff;margin:0;padding:4px 2px 15px}
+.yr-help{display:flex;align-items:center;gap:14px;flex-wrap:wrap;color:#52645b;margin:4px 3px 11px;font-size:12px}.yr-help b{color:var(--deep)}
+.yr-table-wrap{width:100%;height:590px;overflow:auto;border:1px solid #C5DACD;border-radius:8px;background:white}
+.yr-grid{border-spacing:0;border-collapse:separate;min-width:max-content;width:100%;font-size:12px;table-layout:fixed}
+.yr-grid th,.yr-grid td{border-right:1px solid var(--line);border-bottom:1px solid #E8EFE9;padding:8px 10px;text-align:right;min-width:122px;white-space:nowrap;font-variant-numeric:tabular-nums;height:35px}
+.yr-grid .label{position:sticky;left:0;min-width:315px;width:315px;max-width:315px;text-align:left;z-index:2;box-shadow:2px 0 2px #0F3A2413;overflow:hidden;text-overflow:ellipsis}
+.yr-grid thead th{position:sticky;color:#fff;text-align:center;z-index:5}.yr-grid thead tr:first-child th{background:var(--green);top:0;height:43px}.yr-grid thead tr:nth-child(2) th{background:var(--deep);top:43px;height:33px}.yr-grid thead th.label{z-index:8; background:var(--deep) !important}
+.yr-grid thead .date{display:block;color:#e1f5e9;font-weight:400;font-size:10px;line-height:1.3;margin-top:2px}
+.yr-grid tr.detail td.label{background:white}.yr-grid tr.detail td.amt.source{background:var(--input);color:#1F4E9A}.yr-grid tr.detail td.amt.calculated{background:white;color:#163327}
+.yr-grid tr.group td{background:var(--group);color:var(--deep);font-weight:600}.yr-grid tr.section td{background:var(--section);color:var(--deep);font-weight:700}
+.yr-grid tr.total td{background:var(--deep);color:white;font-weight:700}
+.yr-grid tr td.amt.error,.yr-grid tr.total td.amt.error,.yr-grid tr.group td.amt.error,.yr-grid tr.section td.amt.error{color:var(--danger);background:#FFF0F0;box-shadow:inset 0 0 0 1.5px #DA6167;font-weight:700}
+.yr-grid tr td.amt.changed{outline:2px solid #B98212;outline-offset:-2px}
+.yr-grid tr td.amt.clickable{cursor:pointer}.yr-grid tr td.amt.clickable:hover{box-shadow:inset 0 0 0 2px var(--green)}
+.yr-grid td.amt:focus-visible{outline:3px solid #00835A;outline-offset:-3px}
+.icon{display:inline-block;border-radius:50%;border:1px solid currentColor;font-weight:800;width:13px;height:13px;font-size:10px;line-height:11px;text-align:center;margin-left:5px}
+.fx{font-size:10px;margin-left:5px;opacity:.7}
+.tip{position:relative}.tip:where(:hover,:focus-visible):after{content:attr(data-tip);position:absolute;z-index:40;left:calc(100% - 85px);top:calc(100% + 4px);background:#162B23;color:white;border-radius:7px;min-width:290px;max-width:360px;width:max-content;white-space:pre-wrap;line-height:1.4;text-align:left;font-size:12px;font-weight:400;font-variant-numeric:normal;padding:12px;box-shadow:0 7px 23px #26372f55;pointer-events:none}
+.yr-grid tr:nth-last-child(-n+5) td.tip:hover:after{top:auto;bottom:calc(100% + 4px)}
+.dimmer{position:fixed;inset:0;background:#15261e66;z-index:60;display:flex;align-items:center;justify-content:center;padding:15px}
+.edit{background:#fff;max-width:570px;width:100%;padding:20px 22px;border-radius:12px;box-shadow:0 12px 35px #1b2d2a52;max-height:94vh;overflow:auto}
+.edit h2{font-size:17px;margin:0 0 5px}.muted{color:#64766b;font-size:12px;margin:0 0 12px}.source-note{background:var(--panel);border:1px solid var(--line);padding:10px;border-radius:7px;line-height:1.7;margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:700;color:#344F40;margin:11px 0 5px}input,textarea{display:block;width:100%;font:14px system-ui;border:1px solid #b8cfc1;border-radius:6px;padding:9px;background:#fff;color:#162B23}
+textarea{resize:vertical;min-height:64px}.actions{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}button{padding:9px 14px;border:1px solid #aabdb1;background:#fff;border-radius:7px;font-weight:600;cursor:pointer}button.primary{background:var(--deep);color:white;border-color:var(--deep)}button:disabled{opacity:.5;cursor:not-allowed}.err{color:var(--danger);font-size:12px;margin-top:5px}
+</style></head><body>
+<div class="yr-help"><span><b>Double-cliquez</b> sur une cellule jaune pour la corriger, puis confirmez chaque modification.</span><span>ƒ : calcul V20</span><span><b style="color:#B5121B">Rouge</b> : écart ≥ 1 000 DZD (survol = explication)</span></div>
+<div class="yr-table-wrap" id="grid"></div><div id="modal"></div>
+<script>
+const S={ready:()=>window.parent.postMessage({isStreamlitMessage:true,type:'streamlit:componentReady',apiVersion:1},'*'),height:(n)=>window.parent.postMessage({isStreamlitMessage:true,type:'streamlit:setFrameHeight',height:n},'*'),value:v=>window.parent.postMessage({isStreamlitMessage:true,type:'streamlit:setComponentValue',value:v,dataType:'json'},'*')};
+let current={};function el(t,klass,text){const x=document.createElement(t);if(klass)x.className=klass;if(text!==undefined)x.textContent=String(text);return x}
+function close(){document.getElementById('modal').replaceChildren();}
+function edit(c){if(!c.editable)return;
+ const bg=el('div','dimmer'), box=el('section','edit'), title=el('h2','',c.label+' — '+c.year), hint=el('p','muted',c.col_label+' | '+current.unit), source=el('div','source-note');
+ source.textContent='Source : '+(c.pdf||'JSON')+(c.page?' — page '+c.page:'')+'\nMontant actuel : '+(c.text||'cellule vide')+'\nRéférence : '+c.source_period;
+ box.append(title,hint,source);
+ const label1=el('label','',"Nouveau montant ("+current.unit+")"), inp=el('input');inp.value=c.input_value;inp.setAttribute('inputmode','decimal');inp.setAttribute('autocomplete','off');
+ const label2=el('label','',"Justification obligatoire de la correction"),reason=el('textarea');reason.placeholder='Ex. montant vérifié sur le PDF à la page indiquée';reason.maxLength=1000;
+ const err=el('div','err',''),actions=el('div','actions'),cancel=el('button','','Annuler'),ok=el('button','primary','Confirmer la correction');
+ cancel.onclick=close;bg.addEventListener('click',e=>{if(e.target===bg)close()});
+ ok.onclick=()=>{if(!reason.value.trim()){err.textContent='Indiquer le motif de la correction.';return}if(!inp.value.trim()){err.textContent='Indiquer le nouveau montant.';return}
+ ok.disabled=true;ok.textContent='Enregistrement…';S.value({action:'confirm_cell',nonce:Date.now().toString()+'-'+Math.random().toString(36).slice(2),table:current.table,year:c.year,row_id:c.row_id,col:c.col,doc_id:c.doc_id,path:c.path,old:c.raw,entered:inp.value,unit:current.unit,reason:reason.value.trim()});};
+ actions.append(cancel,ok);box.append(label1,inp,label2,reason,err,actions);bg.append(box);document.getElementById('modal').replaceChildren(bg);inp.focus();}
+function render(grid){current=grid;const dest=document.getElementById('grid');dest.replaceChildren();close();const table=el('table','yr-grid'),thead=el('thead'),first=el('tr'),second=el('tr');let corner=el('th','label','Rubriques / postes financiers');corner.rowSpan=2;first.append(corner);
+ for(const year of grid.years){const th=el('th','',"Exercice "+year.year);th.colSpan=grid.columns.length;th.append(el('span','date',year.date));first.append(th);for(const label of grid.columns)second.append(el('th','',label+' ('+grid.unit+')'));}thead.append(first,second);table.append(thead);
+ const tbody=el('tbody');for(const row of grid.rows){let tr=el('tr',row.kind),label=el('td','label',row.label);label.title='Ligne Excel V20 : '+row.number;tr.append(label);
+ for(const cell of row.cells){const cls='amt '+(cell.formula?'calculated':'source')+(cell.anomalies.length?' error':'')+(cell.changed?' changed':'')+(cell.editable?' clickable':'')+(cell.hint?' tip':'');let td=el('td',cls,cell.text);td.dataset.tip=cell.hint||'';td.title=cell.hint||'';if(cell.anomalies.length)td.append(el('span','icon','i'));if(cell.formula&&cell.text)td.append(el('span','fx','ƒ'));
+ if(cell.editable){td.tabIndex=0;td.setAttribute('aria-label',`Modifier ${row.label} ${cell.year} ${cell.col_label}. ${cell.hint||''}`);td.ondblclick=()=>edit({...cell,label:row.label});td.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();edit({...cell,label:row.label})}};}
+ else if(cell.hint){td.tabIndex=0;td.setAttribute('aria-label',cell.hint)}tr.append(td)}tbody.append(tr)}table.append(tbody);dest.append(table);S.height(750)}
+window.addEventListener('message',event=>{if(event.data&&event.data.type==='streamlit:render'){const args=event.data.args||{};if(args.grid)render(args.grid)}});S.ready();S.height(750);
+</script></body></html>
