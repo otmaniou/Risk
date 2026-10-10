@@ -15,3 +15,13 @@ exec /opt/conda/bin/python -m streamlit run app.py \
   --server.port 8888 \
   --server.headless true \
   --browser.gatherUsageStats false
+
+
+
+which python
+python -c "import sys; print(sys.executable)"
+python -c "import streamlit; print('STREAMLIT OK'); print(streamlit.__file__)"
+
+Et aussi :
+ls -l /opt/conda/envs/DWS-GPU/bin/python
+/opt/conda/envs/DWS-GPU/bin/python -c "import streamlit; print('DWS-GPU STREAMLIT OK')"
