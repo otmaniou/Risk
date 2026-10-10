@@ -1,1 +1,7 @@
 mkdir -p /mnt/YARISK_DEMO/DATA/{clients,dossiers,pdf,json/{brut,corrige,valide},excel,logs,index}
+
+
+
+touch /mnt/YARISK_DEMO/DATA/.test_ecriture
+ls -la /mnt/YARISK_DEMO/DATA/.test_ecriture
+rm /mnt/YARISK_DEMO/DATA/.test_ecriture
