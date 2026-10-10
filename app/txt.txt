@@ -49,3 +49,26 @@ bash app.sh
 export YARISK_DATA_DIR=/mnt/YARISK_DEMO/DATA
 export YARISK_INPUT_DIR=/mnt/YARISK_DEMO/DATA/pdf
 export YARISK_OUTPUT_DIR=/mnt/YARISK_DEMO/DATA
+
+
+
+
+python -m pip install streamlit
+
+
+Puis vérifie :
+python -m streamlit --version
+
+
+Attention : cette installation dans le Workspace sert au diagnostic. Elle ne garantit pas que Streamlit sera disponible dans l'environnement utilisé par l'application publiée.
+3. Vérifier app.sh
+Ton script de démarrage devrait ressembler à ceci, en adaptant le chemin du fichier Python :
+#!/bin/bash
+set -e
+
+cd /mnt/code/YARISK_DEMO/V1
+
+exec python -m streamlit run app.py \
+  --server.address=0.0.0.0 \
+  --server.port=8888 \
+  --server.headless=true
