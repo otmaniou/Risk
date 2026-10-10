@@ -5,3 +5,18 @@ mkdir -p /mnt/YARISK_DEMO/DATA/{clients,dossiers,pdf,json/{brut,corrige,valide},
 touch /mnt/YARISK_DEMO/DATA/.test_ecriture
 ls -la /mnt/YARISK_DEMO/DATA/.test_ecriture
 rm /mnt/YARISK_DEMO/DATA/.test_ecriture
+
+
+
+mkdir -p /mnt/YARISK_DEMO/V1/engine
+mkdir -p /mnt/YARISK_DEMO/V1/templates
+
+mkdir -p /mnt/YARISK_DEMO/DATA/clients
+mkdir -p /mnt/YARISK_DEMO/DATA/dossiers
+mkdir -p /mnt/YARISK_DEMO/DATA/pdf
+mkdir -p /mnt/YARISK_DEMO/DATA/json/brut
+mkdir -p /mnt/YARISK_DEMO/DATA/json/corrige
+mkdir -p /mnt/YARISK_DEMO/DATA/json/valide
+mkdir -p /mnt/YARISK_DEMO/DATA/excel
+mkdir -p /mnt/YARISK_DEMO/DATA/logs
+mkdir -p /mnt/YARISK_DEMO/DATA/index
