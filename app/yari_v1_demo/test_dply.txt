@@ -25,3 +25,31 @@ python -c "import streamlit; print('STREAMLIT OK'); print(streamlit.__file__)"
 Et aussi :
 ls -l /opt/conda/envs/DWS-GPU/bin/python
 /opt/conda/envs/DWS-GPU/bin/python -c "import streamlit; print('DWS-GPU STREAMLIT OK')"
+
+
+
+
+
+#!/bin/bash
+set -e
+
+cd /mnt/YARISK_DEMO/V1
+
+PYTHON="/opt/conda/envs/DWS-GPU/bin/python"
+
+echo "======================================"
+echo "YARISK - STARTING APP"
+echo "======================================"
+echo "Python: $($PYTHON --version)"
+echo "Python path: $PYTHON"
+echo "Directory: $(pwd)"
+
+$PYTHON -c "import streamlit; print('Streamlit:', streamlit.__version__)"
+
+echo "Starting Streamlit on port 8888..."
+
+exec $PYTHON -m streamlit run app.py \
+  --server.address 0.0.0.0 \
+  --server.port 8888 \
+  --server.headless true \
+  --browser.gatherUsageStats false
