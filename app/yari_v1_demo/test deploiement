@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+cd /mnt/YARISK_DEMO/V1
+
+echo "======================================"
+echo "       YARISK - STARTING APP"
+echo "======================================"
+echo "Python: $(/opt/conda/bin/python --version)"
+echo "Directory: $(pwd)"
+echo "Starting Streamlit on port 8888..."
+
+exec /opt/conda/bin/python -m streamlit run app.py \
+  --server.address 0.0.0.0 \
+  --server.port 8888 \
+  --server.headless true \
+  --browser.gatherUsageStats false
