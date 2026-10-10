@@ -29,3 +29,23 @@ find /mnt/YARISK_DEMO -maxdepth 4 -type d | sort
 
 ls -lh /mnt/YARISK_DEMO/V1/engine
 ls -lh /mnt/YARISK_DEMO/V1/templates
+
+
+
+
+
+cd /mnt/YARISK_DEMO/V1
+
+ls -lh app.py app.sh requirements.txt
+ls -lh engine/
+ls -lh templates/
+
+
+
+cd /mnt/YARISK_DEMO/V1
+bash app.sh
+
+
+export YARISK_DATA_DIR=/mnt/YARISK_DEMO/DATA
+export YARISK_INPUT_DIR=/mnt/YARISK_DEMO/DATA/pdf
+export YARISK_OUTPUT_DIR=/mnt/YARISK_DEMO/DATA
