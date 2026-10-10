@@ -20,3 +20,12 @@ mkdir -p /mnt/YARISK_DEMO/DATA/json/valide
 mkdir -p /mnt/YARISK_DEMO/DATA/excel
 mkdir -p /mnt/YARISK_DEMO/DATA/logs
 mkdir -p /mnt/YARISK_DEMO/DATA/index
+
+
+
+find /mnt/YARISK_DEMO -maxdepth 4 -type d | sort
+
+
+
+ls -lh /mnt/YARISK_DEMO/V1/engine
+ls -lh /mnt/YARISK_DEMO/V1/templates
