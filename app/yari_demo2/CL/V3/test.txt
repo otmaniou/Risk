@@ -1,1 +1,4 @@
 
+cd /mnt/YARISK_DEMO/V2
+sed -i 's/\r$//' app.sh && sed -i 's#/domino/datasets/local/yarisk#/domino/datasets/local/YaRisk#g' app.sh notebook/bilan_v29d_yarisk_app.ipynb
+grep -c $'\r' app.sh ; grep YARISK_DATA_DIR= app.sh
