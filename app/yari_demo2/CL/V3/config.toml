@@ -1,0 +1,11 @@
+# Ya-Risk — configuration Streamlit pour une App Domino (lue automatiquement au lancement)
+[server]
+port = 8888                     # port attendu par Domino pour les Apps
+address = "0.0.0.0"
+headless = true
+enableCORS = false              # derrière le proxy Domino
+enableXsrfProtection = false    # sinon l'envoi des PDF peut échouer (erreur 403) derrière le proxy
+maxUploadSize = 200             # Mo par fichier
+
+[browser]
+gatherUsageStats = false
