@@ -1,0 +1,85 @@
+# Ya-Risk — POC de bout en bout
+
+PDF des liasses → extraction Qwen (moteur V29d) → Bilan Actif / Passif / TCR (corrections avec recalcul en direct) → validation → Excel ANALYSTE V20.
+
+## Contenu
+
+| Fichier | Rôle |
+|---|---|
+| `app.py`, `app.sh`, `requirements.txt` | Interface web Streamlit (parcours guidé en 5 étapes) |
+| `bilan_view.py` | Schéma Actif/Passif/TCR, formules V20, consolidation multi-exercices, contrôles |
+| `bilan_grid/` | Grille de type Excel (saisie, recalcul pendant la frappe, anomalies) |
+| `notebook/cellule_19_worker_yarisk.py` | Cellule à coller à la fin du notebook V29d : le « worker » GPU |
+
+## 1. Un répertoire partagé
+
+L'appli et le notebook doivent voir **le même dossier**, par exemple `/mnt/Risk/yarisk_app`.
+
+## 2. Notebook V29d (GPU) : le moteur
+
+1. Ajouter en tout début de notebook une **cellule 0** :
+
+```python
+import os
+os.environ["YARISK_APP_ROOT"]   = "/mnt/Risk/yarisk_app"        # dossier partagé avec l'appli
+os.environ["YARISK_INPUT_DIR"]  = "/mnt/Risk/yarisk_app/_vide"  # vide : aucun traitement « batch » au démarrage
+os.environ["YARISK_OUTPUT_DIR"] = "/mnt/Risk/yarisk_app/_v29d"  # sorties techniques V29d (Excel intermédiaires, logs)
+os.makedirs(os.environ["YARISK_INPUT_DIR"], exist_ok=True)
+```
+
+2. Exécuter les cellules 1 à 17 (chargement de Qwen et des fonctions ; les boucles batch ne trouvent rien à traiter).
+3. Coller puis exécuter `cellule_19_worker_yarisk.py` en dernière cellule. Elle tourne en continu et affiche
+   « Worker Ya-Risk démarré ». Pour l'arrêter, utiliser le bouton **Interrupt**.
+
+Le worker reprend **la logique de la cellule 11 sans modification** (classification, lecture ACTIF/PASSIF/TCR,
+double lecture TCR, identité, contrôles). Il publie sa progression, puis génère l'Excel V20 avec `build_client_excel`
+(cellule 16, recalcul LibreOffice) une fois le bilan validé.
+
+## 3. Interface web
+
+```bash
+export YARISK_DATA_DIR=/mnt/Risk/yarisk_app
+./app.sh
+```
+
+Parcours : **Dossier** (fiche client et 1 à 5 PDF) → **Extraction** (progression en direct, puis ouverture automatique
+du bilan) → **Bilan** (grille, corrections avec motif) → **Validation** (commentaire obligatoire s'il reste une anomalie
+HIGH) → **Excel V20** (généré automatiquement, à télécharger).
+
+Dans la barre latérale, le voyant « Moteur Qwen » est vert quand la cellule worker tourne. Pour une démonstration
+sans GPU, utiliser **Mode démonstration** à l'étape 1 et importer des JSON V29d.
+
+### Contrôle visuel avec la liasse PDF
+
+Dans le Bilan, le bouton **📄 Liasse PDF** affiche la page de la liasse à droite du tableau. Avec « Suivre la
+sélection », la page suit la cellule choisie : bonne liasse, bonne page (TCR partie 1 ou 2) et colonne à lire (N ou N-1).
+Les images sont produites par le worker lors de l'extraction (PyMuPDF du notebook), donc l'appli n'a rien à installer.
+Les dossiers importés en JSON sans PDF n'ont pas d'aperçu.
+
+## Données d'un dossier
+
+```
+dossiers/<NIF>/<horodatage>/
+  dossier.json          fiche client, statut, validation
+  pdf/                  liasses déposées
+  statut.json           progression de l'extraction (écrit par le worker)
+  extractions/          JSON V29d originaux (jamais modifiés)
+  apercu/<liasse>/      images JPEG des pages Actif / Passif / TCR (vue « Liasse PDF »)
+  travail/              JSON corrigés (mis à jour à chaque enregistrement)
+  corrections.json      historique : cellule, liasse, avant, après, motif, date
+  validation/           JSON validés figés + bilan_valide.json + Excel V20
+  excel_job.json        génération Excel (écrit par le worker)
+```
+
+## Règles multi-exercices
+
+- Pour chaque exercice et chaque état, la **colonne N de la liasse de l'année** est retenue. À défaut, c'est la
+  **colonne N-1 de la liasse suivante** (règle `choose_candidates` du V29d). Au plus 5 exercices sont affichés.
+- Lorsque les deux existent, la colonne N-1 de la liasse suivante sert de **contrôle inter-liasses** (écart ≥ 1 000 DZD signalé).
+- Pour un exercice lu uniquement en N-1, l'Actif ne donne que le Net : les colonnes Brut et Amortissements sont
+  hachurées et non modifiables.
+
+## Limites du POC
+
+Un seul utilisateur, sans authentification. Un dossier est traité à la fois. Le notebook doit rester ouvert pendant
+la démonstration. Les ratios web sont calculés depuis la liasse seule (sans retraitements analyste du classeur V20).
