@@ -1,1 +1,3 @@
-
+   cd /mnt/YARISK_DEMO/V2
+   sed -i 's/\r$//' app.sh app.py bilan_view.py bilan_grid/*
+   grep -c $'\r' app.sh
